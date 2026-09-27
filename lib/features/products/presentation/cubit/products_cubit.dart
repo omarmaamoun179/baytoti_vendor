@@ -92,7 +92,8 @@ class ProductsCubit extends BaseCubit<ProductsState> {
   }
 
   /// Flips the row's switch. The server decides: a product in review, a
-  /// draft or one out of stock is refused, and the row keeps its state.
+  /// draft or one that cannot be ordered may be refused, and the row keeps
+  /// its state.
   Future<void> toggleVisibility(VendorProductSummary product) async {
     if (state.togglingIds.contains(product.id)) return;
 

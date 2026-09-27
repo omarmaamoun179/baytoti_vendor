@@ -21,9 +21,9 @@ extension ProductStateLabel on ProductState {
       };
 }
 
-/// A product in the catalogue: its photo, name, stock and state, price —
-/// and publishing as one switch. Out of stock is said in amber, since the
-/// product has hidden itself.
+/// A product in the catalogue: its photo, name, availability and state,
+/// price — and publishing as one switch. Unavailable is said in amber,
+/// since nobody can order it.
 class ProductRow extends StatelessWidget {
   final VendorProductSummary product;
   final bool toggling;
@@ -44,8 +44,7 @@ class ProductRow extends StatelessWidget {
     final out = product.isOutOfStock;
     final stockLine = out
         ? 'product_out_of_stock'.tr()
-        : '${'product_stock_count'.tr(args: ['${product.stock}'])} · '
-            '${product.state.labelKey.tr()}';
+        : '${'product_available'.tr()} · ${product.state.labelKey.tr()}';
 
     return AppCard(
       padding: EdgeInsets.all(12.r),

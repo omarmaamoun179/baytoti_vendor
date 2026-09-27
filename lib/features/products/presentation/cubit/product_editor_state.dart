@@ -46,7 +46,7 @@ class ProductFormValues extends Equatable {
   final String name;
   final String categoryId;
   final int priceFils;
-  final int stock;
+  final bool isAvailable;
   final PreparationTime preparationTime;
   final String description;
 
@@ -54,14 +54,14 @@ class ProductFormValues extends Equatable {
     required this.name,
     required this.categoryId,
     required this.priceFils,
-    required this.stock,
+    required this.isAvailable,
     required this.preparationTime,
     required this.description,
   });
 
   @override
   List<Object?> get props =>
-      [name, categoryId, priceFils, stock, preparationTime, description];
+      [name, categoryId, priceFils, isAvailable, preparationTime, description];
 }
 
 class ProductEditorState extends Equatable {

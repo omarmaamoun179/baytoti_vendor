@@ -177,7 +177,9 @@ void _registerOnboardingFeature() {
 }
 
 void _registerUploadsFeature() {
-  sl.registerLazySingleton<UploadsDataSource>(() => UploadsMockDataSource());
+  sl.registerLazySingleton<UploadsDataSource>(
+    () => useMockData ? UploadsMockDataSource() : DeviceUploadsDataSource(),
+  );
   sl.registerLazySingleton<UploadsRepository>(
     () => UploadsRepositoryImpl(sl<UploadsDataSource>()),
   );
@@ -206,7 +208,12 @@ void _registerOrdersFeature() {
 
 void _registerProductsFeature() {
   sl.registerLazySingleton<ProductsDataSource>(
-    () => ProductsMockDataSource(sl<ProductFixtures>(), sl<MockLocale>()),
+    () => useMockData
+        ? ProductsMockDataSource(sl<ProductFixtures>(), sl<MockLocale>())
+        : ProductsRemoteDataSource(
+            sl<NetworkService>(),
+            sl<VendorStoreResolver>(),
+          ),
   );
   sl.registerLazySingleton<ProductsRepository>(
     () => ProductsRepositoryImpl(sl<ProductsDataSource>()),

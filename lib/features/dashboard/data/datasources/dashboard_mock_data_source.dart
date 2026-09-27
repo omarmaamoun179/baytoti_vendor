@@ -73,9 +73,8 @@ class DashboardMockDataSource implements DashboardDataSource {
                   .length,
               'orders_today': today.length,
               'rating': _rating,
-              'low_stock_count': _products.products
-                  .where((p) => p.stock <= ProductFixtures.lowStockThreshold)
-                  .length,
+              'low_stock_count':
+                  _products.products.where((p) => !p.isAvailable).length,
             },
             'sales_last_7_days': [
               for (var i = 0; i < _pastDaysFils.length; i++)

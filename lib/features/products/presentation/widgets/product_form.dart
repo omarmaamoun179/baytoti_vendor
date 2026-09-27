@@ -12,10 +12,11 @@ import '../../../../core/widgets/pill_chip.dart';
 import '../../domain/entities/product_enums.dart';
 import '../../domain/entities/vendor_product.dart';
 import '../cubit/product_editor_state.dart';
+import 'availability_field.dart';
 import 'stepper_field.dart';
 
 /// The product's own fields, in the design's order: name, category, price
-/// and stock, preparation time, description.
+/// and availability, preparation time, description.
 ///
 /// Holds its controllers; the page reaches it through a
 /// `GlobalKey<ProductFormState>` and asks [ProductFormState.submit] for the
@@ -43,7 +44,6 @@ class ProductForm extends StatefulWidget {
 class ProductFormState extends State<ProductForm> {
   /// The design's starting values for a new product.
   static const int _defaultPriceFils = 4500;
-  static const int _defaultStock = 10;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -53,21 +53,18 @@ class ProductFormState extends State<ProductForm> {
   late final _price = TextEditingController(
     text: Money.amount(widget.product?.priceFils ?? _defaultPriceFils),
   );
-  late final _stock = TextEditingController(
-    text: '${widget.product?.stock ?? _defaultStock}',
-  );
 
   late String? _categoryId =
       widget.product?.categoryId ?? widget.categories.firstOrNull?.id;
   late PreparationTime _preparation =
       widget.product?.preparationTime ?? PreparationTime.oneDay;
+  late bool _available = widget.product?.isAvailable ?? true;
 
   @override
   void dispose() {
     _name.dispose();
     _description.dispose();
     _price.dispose();
-    _stock.dispose();
     super.dispose();
   }
 
@@ -76,7 +73,6 @@ class ProductFormState extends State<ProductForm> {
   ProductFormValues? submit() {
     FocusScope.of(context).unfocus();
     _settlePrice();
-    _settleStock();
 
     final valid = _formKey.currentState?.validate() ?? false;
     final categoryId = _categoryId;
@@ -86,7 +82,7 @@ class ProductFormState extends State<ProductForm> {
       name: _name.text.trim(),
       categoryId: categoryId,
       priceFils: _priceFils,
-      stock: int.tryParse(_stock.text) ?? 0,
+      isAvailable: _available,
       preparationTime: _preparation,
       description: _description.text.trim(),
     );
@@ -101,20 +97,11 @@ class ProductFormState extends State<ProductForm> {
     widget.onChanged();
   }
 
-  void _stepStock(int direction) {
-    final current = int.tryParse(_stock.text) ?? 0;
-    _stock.text = '${(current + direction).clamp(0, ProductRules.maxStock)}';
-    widget.onChanged();
-  }
-
   /// Puts a typed price back inside the limits, in the three decimals KWD
   /// is written with.
   void _settlePrice() => _price.text = Money.amount(
         _priceFils.clamp(ProductRules.minPriceFils, ProductRules.maxPriceFils),
       );
-
-  void _settleStock() => _stock.text =
-      '${(int.tryParse(_stock.text) ?? 0).clamp(0, ProductRules.maxStock)}';
 
   void _choose(VoidCallback change) {
     setState(change);
@@ -167,17 +154,9 @@ class ProductFormState extends State<ProductForm> {
                 ),
                 SizedBox(width: 10.w),
                 Expanded(
-                  child: StepperField(
-                    label: 'product_stock'.tr(),
-                    controller: _stock,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(3),
-                    ],
-                    onDecrement: () => _stepStock(-1),
-                    onIncrement: () => _stepStock(1),
-                    onEditingDone: _settleStock,
+                  child: AvailabilityField(
+                    value: _available,
+                    onChanged: (value) => _choose(() => _available = value),
                   ),
                 ),
               ],

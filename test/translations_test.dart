@@ -64,6 +64,8 @@ const List<String> errorMessageKeys = [
   'product_photos_uploading',
   'product_photos_failed',
   'product_photo_required',
+  'product_review_not_sent',
+  'product_images_too_large',
   // Offers
   'offers_failed',
   'offer_create_failed',

@@ -11,12 +11,12 @@ import '../models/product_models.dart';
 import 'product_fixtures.dart';
 import 'products_data_source.dart';
 
-/// [ProductFixtures] behind the catalogue contract.
+/// [ProductFixtures] behind the catalogue calls.
 ///
-/// It enforces what the contract says the server does: a product is not
-/// purchasable before review, so the switch refuses to publish a draft or a
-/// product in review (`product_pending_review`), and stock 0 keeps a product
-/// hidden. A save sends the product to review or keeps it a draft; nothing
+/// It enforces what the server does: a product is not purchasable before
+/// review, so the switch refuses to publish a draft or a product in review
+/// (`product_pending_review`), and one marked unavailable stays hidden. A
+/// save keeps the product a draft and [submitForReview] sends it on; nothing
 /// here approves it.
 class ProductsMockDataSource implements ProductsDataSource {
   static const int _perPage = 20;
@@ -80,7 +80,7 @@ class ProductsMockDataSource implements ProductsDataSource {
             'name': product.name.pick(ar),
             'category_id': product.categoryId,
             'price_fils': product.priceFils,
-            'stock': product.stock,
+            'is_available': product.isAvailable,
             'preparation_time': product.preparationTime.wire,
             'description': product.description.pick(ar),
             'images': [
@@ -126,7 +126,6 @@ class ProductsMockDataSource implements ProductsDataSource {
             name: const Localized('', ''),
             categoryId: draft.categoryId,
             priceFils: draft.priceFils,
-            stock: draft.stock,
             state: ProductState.draft,
           );
           _apply(product, draft);
@@ -154,6 +153,21 @@ class ProductsMockDataSource implements ProductsDataSource {
       );
 
   @override
+  Future<Either<Failure, ProductSaveResultModel>> submitForReview(
+    String id,
+  ) =>
+      guardedRequest(
+        'ProductsMockDataSource.submitForReview',
+        () async {
+          await Future<void>.delayed(mockLatency);
+          final product = _find(id)..state = ProductState.pendingReview;
+          return _saved(product);
+        },
+        fallbackMessage: 'product_review_not_sent',
+        messageForStatus: const {404: 'product_not_found'},
+      );
+
+  @override
   Future<Either<Failure, VendorProductSummaryModel>> setVisibility(
     String id, {
     required bool published,
@@ -170,7 +184,7 @@ class ProductsMockDataSource implements ProductsDataSource {
               ProductState.pendingReview =>
                 'product_pending_review',
               ProductState.rejected => 'product_rejected_cannot_publish',
-              _ when product.stock <= 0 => 'product_out_of_stock_publish',
+              _ when !product.isAvailable => 'product_out_of_stock_publish',
               _ => null,
             };
             if (refusal != null) {
@@ -197,15 +211,14 @@ class ProductsMockDataSource implements ProductsDataSource {
       ..name = Localized(name, name)
       ..categoryId = draft.categoryId
       ..priceFils = draft.priceFils
-      ..stock = draft.stock
+      ..isAvailable = draft.isAvailable
       ..preparationTime = draft.preparationTime
       ..description = Localized(description, description)
       // On fixtures an upload's URL is its path on the device, so the photo
       // shows wherever the server's copy would.
       ..photos = [...draft.photos]
-      ..state = draft.submitForReview
-          ? ProductState.pendingReview
-          : ProductState.draft;
+      // An edit goes back through review, as a new product does.
+      ..state = ProductState.draft;
   }
 
   Future<ProductSaveResultModel> _saved(ProductRecord product) async =>
@@ -225,7 +238,7 @@ class ProductsMockDataSource implements ProductsDataSource {
         'id': product.id,
         'name': product.name.pick(ar),
         'price_fils': product.priceFils,
-        'stock': product.stock,
+        'is_available': product.isAvailable,
         'state': product.state.wire,
         'images': [
           for (final photo in product.photos) {'url': photo.url},

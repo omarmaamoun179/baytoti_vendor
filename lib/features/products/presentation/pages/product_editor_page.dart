@@ -87,10 +87,20 @@ class _ProductEditorViewState extends State<_ProductEditorView> {
   void _onState(BuildContext context, ProductEditorState state) {
     if (state.saveStatus == ProductSaveStatus.saved) {
       final submitted = state.saved?.state == ProductState.pendingReview;
-      showAppToast(
-        context,
-        (submitted ? 'product_submitted' : 'product_draft_saved').tr(),
-      );
+      final refusal = state.saved?.reviewRefusal;
+      // Saved either way; a refused review is said, and the editor closes.
+      if (refusal != null) {
+        showAppToast(
+          context,
+          'product_saved_not_submitted'.tr(args: [refusal]),
+          isError: true,
+        );
+      } else {
+        showAppToast(
+          context,
+          (submitted ? 'product_submitted' : 'product_draft_saved').tr(),
+        );
+      }
       setState(() => _leaving = true);
       Navigator.of(context).pop(true);
       return;

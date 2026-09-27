@@ -153,7 +153,7 @@ class ProductEditorCubit extends BaseCubit<ProductEditorState> {
         name: values.name,
         categoryId: values.categoryId,
         priceFils: values.priceFils,
-        stock: values.stock,
+        isAvailable: values.isAvailable,
         preparationTime: values.preparationTime,
         description: values.description,
         photos: [
