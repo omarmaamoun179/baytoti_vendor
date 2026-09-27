@@ -1,0 +1,61 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(git rm *)",
+      "Read(//Users/omar/my_apps/**)",
+      "Bash(mkdir -p /private/tmp/claude-501/-Users-omar-my-apps-cloack-vendor/64741ac3-77e2-404f-8b27-6bcf36de5b44/scratchpad)",
+      "Bash(curl -s -m 30 https://cloak.alqudiry-solutions.com/docs/api.json -o /private/tmp/claude-501/-Users-omar-my-apps-cloack-vendor/64741ac3-77e2-404f-8b27-6bcf36de5b44/scratchpad/api.json)",
+      "Bash(curl -s -m 20 -H 'Accept: application/json' https://cloak.alqudiry-solutions.com/api/v1/settings)",
+      "Bash(curl -s -m 20 -H 'Accept: application/json' -H 'Content-Type: application/json' -X POST https://cloak.alqudiry-solutions.com/api/v1/auth/login -d '{\"login\":\"nobody@example.invalid\",\"password\":\"wrongpass1\"}')",
+      "Bash(curl -s -m 20 -H 'Accept: application/json' https://cloak.alqudiry-solutions.com/api/v1/auth/me)",
+      "Bash(grep -rn \"loadSettings\" lib test | grep -v \"^lib/features/auth/presentation/cubit/auth_cubit.dart:150\"; sed -n 140,150p lib/features/auth/presentation/cubit/auth_cubit.dart; sed -n 236,275p lib/features/auth/presentation/cubit/auth_cubit.dart; grep -n \"set onStopping\\\\|onStoppingRequest =\" ~/.pub-cache/hosted/pub.dev/requests_inspector-5.5.1/lib/src/inspector_controller.dart)",
+      "Read(//Users/omar/.pub-cache/hosted/pub.dev/requests_inspector-5.5.1/lib/src/**)",
+      "Bash(git check-ignore *)",
+      "Bash(grep -v \"^\\\\s*$\")",
+      "Bash(grep -n 'authorization != '\\\\''Bearer $token'\\\\''' lib/core/services/network_service.dart)",
+      "Bash(grep -nF 'if \\(token == null || authorization != '\\\\''Bearer $token'\\\\''\\) return;' lib/core/services/network_service.dart)",
+      "Bash(curl -sS --max-time 30 -H 'Accept: application/json' https://cloak.alqudiry-solutions.com/docs/api.json -o /private/tmp/claude-501/-Users-omar-my-apps-cloack-vendor/64741ac3-77e2-404f-8b27-6bcf36de5b44/scratchpad/api.json)",
+      "Bash(F=/Users/omar/flutter_ver/flutter_3.41.1/bin/flutter && $F analyze 2>&1 | tail -2 && $F test 2>&1 | tail -1 && wc -l lib/features/store/presentation/pages/store_page.dart lib/features/store/presentation/cubit/store_cubit.dart && rm -f /private/tmp/claude-501/-Users-omar-my-apps-cloack-vendor/64741ac3-77e2-404f-8b27-6bcf36de5b44/scratchpad/*.mutbak)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp/claude-501/-Users-omar-my-apps-cloack-vendor/64741ac3-77e2-404f-8b27-6bcf36de5b44/scratchpad"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block_dart_format.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/page_length_check.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/analyze_on_stop.sh",
+            "timeout": 240,
+            "statusMessage": "flutter analyze"
+          }
+        ]
+      }
+    ]
+  }
+}
