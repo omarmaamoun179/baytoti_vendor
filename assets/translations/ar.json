@@ -311,5 +311,22 @@
   "address_floor": "الطابق {}",
   "address_apartment": "شقة {}",
   "dashboard_change_vs_previous": "{} مقارنة بالفترة السابقة",
-  "notifications_mark_read_failed": "تعذّر تعليم الإشعارات كمقروءة."
+  "notifications_mark_read_failed": "تعذّر تعليم الإشعارات كمقروءة.",
+  "field_optional": "{} (اختياري)",
+  "auth_section_account": "حسابك",
+  "auth_section_business": "نشاط الأسرة",
+  "auth_section_store": "المتجر",
+  "auth_name": "اسمك",
+  "auth_name_hint": "مثال: نورة العنزي",
+  "auth_business_phone": "هاتف النشاط",
+  "auth_business_email": "بريد النشاط",
+  "auth_commercial_license": "رقم الرخصة التجارية",
+  "auth_civil_id": "الرقم المدني",
+  "auth_bank_account": "الحساب البنكي",
+  "auth_iban": "رقم الآيبان",
+  "auth_iban_hint": "KW81 CBKU 0000 0000 0000 1234 5601 01",
+  "auth_address": "العنوان",
+  "auth_store_name": "اسم المتجر",
+  "auth_store_name_hint": "الاسم الذي يراه العملاء",
+  "auth_store_description": "نبذة عن المتجر"
 }

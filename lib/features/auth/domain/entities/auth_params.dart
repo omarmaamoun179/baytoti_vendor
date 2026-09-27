@@ -23,46 +23,104 @@ class KuwaitPhone {
   }
 }
 
-/// Limits on the family name a new account is created with — inside the
-/// API's `name` (3–100), `business_name` and `store_name` (3–255), all three
-/// of which it fills.
-class FamilyName {
-  FamilyName._();
+/// The business and its first store — the vendor half of
+/// `POST /auth/vendor/register`. For a producing family, the business is
+/// the family.
+///
+/// Only [businessName] and [storeName] are required; the rest may be left
+/// blank, and a blank one is not sent. Limits mirror the OpenAPI
+/// `VendorRegisterRequest`, so the fields and the wire cannot drift apart.
+class VendorDetails extends Equatable {
+  static const int businessNameMinLength = 3;
+  static const int businessNameMaxLength = 255;
+  static const int businessPhoneMaxLength = 20;
+  static const int businessEmailMaxLength = 255;
+  static const int commercialLicenseMaxLength = 255;
+  static const int civilIdMaxLength = 255;
+  static const int bankAccountMaxLength = 255;
+  static const int ibanMaxLength = 255;
+  static const int addressMaxLength = 1000;
+  static const int storeNameMinLength = 3;
+  static const int storeNameMaxLength = 255;
+  static const int storeDescriptionMaxLength = 5000;
 
-  static const int minLength = 3;
-  static const int maxLength = 60;
+  final String businessName;
+
+  /// E.164 as the phone field reports it, or empty.
+  final String businessPhone;
+
+  final String businessEmail;
+  final String commercialLicense;
+  final String civilId;
+  final String bankAccount;
+  final String iban;
+  final String address;
+  final String storeName;
+  final String storeDescription;
+
+  const VendorDetails({
+    this.businessName = '',
+    this.businessPhone = '',
+    this.businessEmail = '',
+    this.commercialLicense = '',
+    this.civilId = '',
+    this.bankAccount = '',
+    this.iban = '',
+    this.address = '',
+    this.storeName = '',
+    this.storeDescription = '',
+  });
+
+  @override
+  List<Object?> get props => [
+        businessName,
+        businessPhone,
+        businessEmail,
+        commercialLicense,
+        civilId,
+        bankAccount,
+        iban,
+        address,
+        storeName,
+        storeDescription,
+      ];
 }
 
 /// What the sign-up tab adds to the number: the rest of the
-/// `VendorRegisterRequest` the API requires.
+/// `VendorRegisterRequest` — the account, and the [vendor] behind it.
 ///
-/// The family is the business and its first store, so [familyName] goes out
-/// as the account's `name`, `business_name` and `store_name` alike; the store
-/// tab renames the store later.
+/// The API marks `phone` nullable, but the code that finishes sign-up is
+/// sent to it, so the form requires one.
 class SignupDetails extends Equatable {
+  static const int nameMinLength = 3;
+  static const int nameMaxLength = 100;
   static const int emailMaxLength = 255;
 
   /// The API's `password` minimum; the form's strength rule is stricter.
   static const int passwordMinLength = 8;
 
-  final String familyName;
+  /// The account holder's own name.
+  final String name;
+
   final String email;
   final String password;
   final String passwordConfirmation;
+  final VendorDetails vendor;
 
   const SignupDetails({
-    required this.familyName,
+    required this.name,
     required this.email,
     required this.password,
     required this.passwordConfirmation,
+    required this.vendor,
   });
 
   @override
   List<Object?> get props =>
-      [familyName, email, password, passwordConfirmation];
+      [name, email, password, passwordConfirmation, vendor];
 
   @override
-  String toString() => 'SignupDetails($familyName, $email, password: ***)';
+  String toString() => 'SignupDetails($name, $email, password: ***)';
 }
 
 class RequestOtpParams extends Equatable {

@@ -119,9 +119,14 @@ sign-out) at the foot of the store tab.
   stubbed the server puts the code at the end of its message (`"… demo otp
   :561228"`), shown under the boxes (`otp_demo_hint`), and its length sets
   the boxes (six otherwise). A wrong code is a 422 on `otp`. Sign-up first
-  sends `POST auth/vendor/register` (the form adds email, password and
-  confirmation; the family name is the account's `name`, `business_name`
-  and `store_name`), which issues no token, then asks for the code. If the
+  sends `POST auth/vendor/register` — the whole `VendorRegisterRequest`:
+  the account (name, email, phone, password twice), the family's business
+  (name required; phone, email, commercial licence, civil ID, bank account,
+  IBAN and address optional) and its store (name required, description
+  optional), in `AuthForm` and `VendorDetailsFields`. Blanks are left out
+  of the body, numbers go as digits, the IBAN in capitals without spaces,
+  and `device_name` is the app and platform. It issues no token, then the
+  app asks for the code. If the
   code fails after the account exists, the family is told to log in with the
   same number (`signup_code_failed`). `verify-otp`'s answer is read leniently
   (token flat or nested, user wrapped or not); a token without an account is
@@ -405,7 +410,7 @@ interceptor instead of the `RequestsInspector` widget, it is created disabled
 and silently drops every request for the rest of the run.
 
 Limits and lengths live on the **domain entity** (`ProductRules`,
-`StoreRules`, `FamilyName`, `SignupDetails`, `OtpChallenge.codeLength`), not
+`StoreRules`, `SignupDetails`, `VendorDetails`, `OtpChallenge.codeLength`), not
 only in a validator or a widget, so the UI and the wire cannot drift apart;
 each sits inside the OpenAPI schema's own. **Money is integer fils** in the
 app (4250 = 4.250 KWD); `Money.display(fils)` prints it with Western digits

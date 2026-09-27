@@ -14,7 +14,11 @@ import 'auth_data_source.dart';
 class AuthRemoteDataSource implements AuthDataSource {
   final NetworkService _networkService;
 
-  AuthRemoteDataSource(this._networkService);
+  /// What registration names the account's token (`device_name`) — the app
+  /// and the platform, since the app reads no device model.
+  final String? _deviceName;
+
+  AuthRemoteDataSource(this._networkService, {this._deviceName});
 
   @override
   Future<Either<Failure, Unit>> register(String phone, SignupDetails signup) =>
@@ -25,7 +29,7 @@ class AuthRemoteDataSource implements AuthDataSource {
             ApiEndPoint.vendorRegister,
             // Public: there is no session yet to refresh.
             skipAuthRefresh: true,
-            data: vendorRegisterBody(phone, signup),
+            data: vendorRegisterBody(phone, signup, deviceName: _deviceName),
           );
           // Only whether it succeeded is read. The answer carries no token,
           // and an account shaped otherwise than expected must not turn one

@@ -150,13 +150,22 @@ void main() {
     await wait(tester, 1500);
     await tapText(tester, 'أسرة جديدة');
     await capture('sign_up');
-    // Name, email, phone, password, confirmation — in the form's order.
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), 'مطبخ سارة');
-    await tester.enterText(fields.at(1), 'sara@example.com');
-    await tester.enterText(fields.at(2), '66001122');
-    await tester.enterText(fields.at(3), 'kitchen2026');
-    await tester.enterText(fields.at(4), 'kitchen2026');
+    // By position in the form: the account (name, email, phone, password,
+    // confirmation), then the business name (5) and the store name (13);
+    // the optional fields between are left blank.
+    Future<void> fill(int index, String text) async {
+      final field = find.byType(TextField).at(index);
+      await tester.ensureVisible(field);
+      await tester.enterText(field, text);
+    }
+
+    await fill(0, 'سارة العلي');
+    await fill(1, 'sara@example.com');
+    await fill(2, '66001122');
+    await fill(3, 'kitchen2026');
+    await fill(4, 'kitchen2026');
+    await fill(5, 'مطبخ سارة');
+    await fill(13, 'حلويات سارة');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await wait(tester, 400);
     await tapText(tester, 'أوافق على شروط الاستخدام وسياسة الخصوصية.');

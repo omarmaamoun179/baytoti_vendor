@@ -82,10 +82,14 @@ void main() {
       phone: '+96566001122',
       mode: AuthMode.signup,
       signup: SignupDetails(
-        familyName: 'مطبخ سارة',
+        name: 'سارة العلي',
         email: 'sara@example.com',
         password: 'kitchen2026',
         passwordConfirmation: 'kitchen2026',
+        vendor: VendorDetails(
+          businessName: 'مطبخ سارة',
+          storeName: 'مطبخ سارة',
+        ),
       ),
     ));
     await cubit.verifyOtp(AuthMockDataSource.demoCode);
@@ -165,6 +169,39 @@ void main() {
 
     test('the number goes out as digits only', () {
       expect(requestOtpBody('+965 5150 2244'), {'phone': '96551502244'});
+    });
+
+    test('registration sends every field filled, and no blank one', () {
+      final body = vendorRegisterBody(
+        '+96566001122',
+        const SignupDetails(
+          name: ' سارة العلي ',
+          email: 'sara@example.com',
+          password: 'kitchen2026',
+          passwordConfirmation: 'kitchen2026',
+          vendor: VendorDetails(
+            businessName: 'مطبخ سارة',
+            businessPhone: '+965 2266 1100',
+            iban: 'kw81 cbku 0000',
+            storeName: 'حلويات سارة',
+            storeDescription: '  ',
+          ),
+        ),
+        deviceName: 'Baytouti Vendor · ios',
+      );
+
+      expect(body, {
+        'name': 'سارة العلي',
+        'email': 'sara@example.com',
+        'phone': '96566001122',
+        'password': 'kitchen2026',
+        'password_confirmation': 'kitchen2026',
+        'device_name': 'Baytouti Vendor · ios',
+        'business_name': 'مطبخ سارة',
+        'business_phone': '96522661100',
+        'iban': 'KW81CBKU0000',
+        'store_name': 'حلويات سارة',
+      });
     });
   });
 }

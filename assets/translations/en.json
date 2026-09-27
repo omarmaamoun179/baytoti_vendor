@@ -304,5 +304,22 @@
   "address_floor": "Floor {}",
   "address_apartment": "Apt {}",
   "dashboard_change_vs_previous": "{} vs the previous period",
-  "notifications_mark_read_failed": "Couldn’t mark the notifications read."
+  "notifications_mark_read_failed": "Couldn’t mark the notifications read.",
+  "field_optional": "{} (optional)",
+  "auth_section_account": "Your account",
+  "auth_section_business": "The family’s business",
+  "auth_section_store": "The store",
+  "auth_name": "Your name",
+  "auth_name_hint": "e.g. Noura Al-Enezi",
+  "auth_business_phone": "Business phone",
+  "auth_business_email": "Business email",
+  "auth_commercial_license": "Commercial licence no.",
+  "auth_civil_id": "Civil ID",
+  "auth_bank_account": "Bank account",
+  "auth_iban": "IBAN",
+  "auth_iban_hint": "KW81 CBKU 0000 0000 0000 1234 5601 01",
+  "auth_address": "Address",
+  "auth_store_name": "Store name",
+  "auth_store_name_hint": "The name customers see",
+  "auth_store_description": "About the store"
 }

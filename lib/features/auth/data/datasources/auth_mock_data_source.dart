@@ -48,7 +48,9 @@ class AuthMockDataSource implements AuthDataSource {
             // What the server's unique rule says to a number used twice.
             throw const RequestException('phone_taken', statusCode: 422);
           }
-          _registered[digits] = signup.familyName.trim();
+          // The family is the business; its name is what the fixtures
+          // greet and name the store by.
+          _registered[digits] = signup.vendor.businessName.trim();
           return unit;
         },
         fallbackMessage: 'signup_failed',

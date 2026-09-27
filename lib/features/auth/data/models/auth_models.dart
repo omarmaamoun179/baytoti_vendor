@@ -140,22 +140,43 @@ Map<String, dynamic> verifyOtpBody(VerifyOtpParams params) => {
     };
 
 /// The body of `POST /auth/vendor/register`, per the OpenAPI
-/// `VendorRegisterRequest`. The family's name is the account's, the
-/// business's and the first store's; the optional business fields are left
-/// out rather than sent blank.
+/// `VendorRegisterRequest`.
+///
+/// Every number goes out as digits, as the OTP pair takes it. An optional
+/// field left blank is left out rather than sent empty: an empty string is
+/// a value the server would store, or refuse as an invalid email.
+/// [deviceName] names the token the account is issued, for the family's
+/// list of signed-in devices.
 Map<String, dynamic> vendorRegisterBody(
   String phone,
-  SignupDetails signup,
-) {
-  final name = signup.familyName.trim();
+  SignupDetails signup, {
+  String? deviceName,
+}) {
+  final vendor = signup.vendor;
+  final businessPhone = digitsOnly(vendor.businessPhone);
 
   return {
-    'name': name,
+    'name': signup.name.trim(),
     'email': signup.email.trim(),
     'phone': digitsOnly(phone),
     'password': signup.password,
     'password_confirmation': signup.passwordConfirmation,
-    'business_name': name,
-    'store_name': name,
+    'device_name': ?_blankToNull(deviceName),
+    'business_name': vendor.businessName.trim(),
+    'business_phone': ?_blankToNull(businessPhone),
+    'business_email': ?_blankToNull(vendor.businessEmail),
+    'commercial_license': ?_blankToNull(vendor.commercialLicense),
+    'civil_id': ?_blankToNull(vendor.civilId),
+    'bank_account': ?_blankToNull(vendor.bankAccount),
+    // Written in capitals with no spaces, as banks print it grouped.
+    'iban': ?_blankToNull(vendor.iban.replaceAll(' ', '').toUpperCase()),
+    'address': ?_blankToNull(vendor.address),
+    'store_name': vendor.storeName.trim(),
+    'store_description': ?_blankToNull(vendor.storeDescription),
   };
+}
+
+String? _blankToNull(String? value) {
+  final trimmed = value?.trim() ?? '';
+  return trimmed.isEmpty ? null : trimmed;
 }

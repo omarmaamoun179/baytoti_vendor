@@ -10,14 +10,16 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/caps_label.dart';
 import '../../../../core/widgets/phone_text_form_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../domain/entities/auth_params.dart';
 import 'auth_mode_tabs.dart';
 import 'terms_check.dart';
+import 'vendor_details_fields.dart';
 
-/// Sign in and sign up in one form under the segmented control. Sign-up
-/// adds what `POST /auth/vendor/register` requires — the family's name, an
-/// email and a password — and the terms; both end in a code sent to the
-/// phone.
+/// Sign in and sign up in one form under the segmented control. Sign-up is
+/// the whole `POST /auth/vendor/register`: the account (name, email, phone,
+/// password), the family's business ([VendorDetailsFields]) and its store,
+/// then the terms. Both tabs end in a code sent to the phone.
 ///
 /// Holds its own fields and validates them locally; what it hands up is a
 /// finished [RequestOtpParams] through [onSubmit].
@@ -47,25 +49,49 @@ class _AuthFormState extends State<AuthForm> {
   final _confirmation = TextEditingController();
   final _phone = TextEditingController();
 
-  /// Owned here so the phone field can regroup the number when it is left.
+  // Walked explicitly: the phone field's country picker is focusable and
+  // would otherwise take a `next`. The phone's node also lets the field
+  // regroup the number when it is left.
+  final _nameFocus = FocusNode();
+  final _emailFocus = FocusNode();
   final _phoneFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmationFocus = FocusNode();
+  final _vendorFocus = FocusNode();
 
   /// What the phone field last reported: the number in E.164 with the
   /// country it was typed for. The controller holds only the national digits
   /// — which country they belong to is not recoverable from them.
   PhoneNumber? _number;
 
+  /// The business and store sections' latest value, kept across a tab
+  /// switch.
+  VendorDetails _vendor = const VendorDetails();
+
   AuthMode _mode = AuthMode.login;
   bool _acceptedTerms = false;
 
   @override
   void dispose() {
-    _name.dispose();
-    _email.dispose();
-    _password.dispose();
-    _confirmation.dispose();
-    _phone.dispose();
-    _phoneFocus.dispose();
+    for (final controller in [
+      _name,
+      _email,
+      _password,
+      _confirmation,
+      _phone,
+    ]) {
+      controller.dispose();
+    }
+    for (final node in [
+      _nameFocus,
+      _emailFocus,
+      _phoneFocus,
+      _passwordFocus,
+      _confirmationFocus,
+      _vendorFocus,
+    ]) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -86,10 +112,11 @@ class _AuthFormState extends State<AuthForm> {
       mode: _mode,
       signup: _mode == AuthMode.signup
           ? SignupDetails(
-              familyName: _name.text.trim(),
+              name: _name.text.trim(),
               email: _email.text.trim(),
               password: _password.text,
               passwordConfirmation: _confirmation.text,
+              vendor: _vendor,
             )
           : null,
     ));
@@ -107,7 +134,7 @@ class _AuthFormState extends State<AuthForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AuthModeTabs(mode: _mode, onChanged: _setMode),
-            SizedBox(height: 20.h),
+            SizedBox(height: signup ? 0 : 20.h),
             if (signup) ..._buildAccountFields(p),
             // The design's small caps label rather than the field's own.
             CapsLabel('auth_phone'.tr()),
@@ -127,12 +154,21 @@ class _AuthFormState extends State<AuthForm> {
               onInputChanged: (number) => _number = number,
               onSubmitted: (_) {
                 // Sign-up goes on to the password; sign-in is done here.
-                if (!signup) _submit();
+                if (signup) {
+                  _passwordFocus.requestFocus();
+                } else {
+                  _submit();
+                }
               },
             ),
             if (signup) ...[
               SizedBox(height: 16.h),
               ..._buildPasswordFields(p),
+              VendorDetailsFields(
+                initial: _vendor,
+                focusNode: _vendorFocus,
+                onChanged: (details) => _vendor = details,
+              ),
               SizedBox(height: 16.h),
               TermsCheck(
                 value: _acceptedTerms,
@@ -160,20 +196,23 @@ class _AuthFormState extends State<AuthForm> {
     );
   }
 
-  /// The family's name and the account's email, above the number.
+  /// The account holder's name and email, above the number.
   List<Widget> _buildAccountFields(AppPalette p) => [
+        SectionHeader(title: 'auth_section_account'.tr()),
         AppTextField(
-          label: 'auth_family_name'.tr(),
-          hintText: 'auth_family_name_hint'.tr(),
+          label: 'auth_name'.tr(),
+          hintText: 'auth_name_hint'.tr(),
           controller: _name,
+          focusNode: _nameFocus,
           fillColor: p.surf,
-          maxLength: FamilyName.maxLength,
+          maxLength: SignupDetails.nameMaxLength,
           textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.organizationName],
+          autofillHints: const [AutofillHints.name],
+          onSubmitted: (_) => _emailFocus.requestFocus(),
           validator: (value) => validateTextLength(
             value,
-            minLength: FamilyName.minLength,
-            maxLength: FamilyName.maxLength,
+            minLength: SignupDetails.nameMinLength,
+            maxLength: SignupDetails.nameMaxLength,
             isRequired: true,
           ),
         ),
@@ -182,11 +221,13 @@ class _AuthFormState extends State<AuthForm> {
           label: 'auth_email'.tr(),
           hintText: 'auth_email_hint'.tr(),
           controller: _email,
+          focusNode: _emailFocus,
           fillColor: p.surf,
           maxLength: SignupDetails.emailMaxLength,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
+          onSubmitted: (_) => _phoneFocus.requestFocus(),
           validator: (value) => validateEmail(value?.trim()),
         ),
         SizedBox(height: 16.h),
@@ -199,23 +240,26 @@ class _AuthFormState extends State<AuthForm> {
           label: 'auth_password'.tr(),
           hintText: 'auth_password_hint'.tr(),
           controller: _password,
+          focusNode: _passwordFocus,
           fillColor: p.surf,
           obscureText: true,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
+          onSubmitted: (_) => _confirmationFocus.requestFocus(),
           validator: validatePassword,
         ),
         SizedBox(height: 16.h),
         AppTextField(
           label: 'auth_password_confirm'.tr(),
           controller: _confirmation,
+          focusNode: _confirmationFocus,
           fillColor: p.surf,
           obscureText: true,
-          textInputAction: TextInputAction.done,
+          textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
+          onSubmitted: (_) => _vendorFocus.requestFocus(),
           validator: (value) =>
               validatePasswordConfirmation(value, _password.text),
-          onSubmitted: (_) => _submit(),
         ),
       ];
 }

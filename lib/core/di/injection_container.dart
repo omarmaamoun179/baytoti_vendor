@@ -125,7 +125,11 @@ void _registerAuthFeature() {
   sl.registerLazySingleton<AuthDataSource>(
     () => useMockData
         ? AuthMockDataSource(sl<TokenStore>(), sl<MockLocale>())
-        : AuthRemoteDataSource(sl<NetworkService>()),
+        : AuthRemoteDataSource(
+            sl<NetworkService>(),
+            deviceName: '${sl<AppInfo>().appName ?? 'Baytouti Vendor'} · '
+                '${sl<NetworkServiceUtil>().getPlatformType()}',
+          ),
   );
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(sl<TokenStore>(), sl<SecureStorageService>()),
