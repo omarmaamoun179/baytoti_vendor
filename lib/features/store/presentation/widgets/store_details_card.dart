@@ -12,12 +12,9 @@ import '../../../../core/widgets/pill_chip.dart';
 import '../../domain/entities/store_profile.dart';
 import '../cubit/store_state.dart';
 
-extension StoreCityLabel on StoreCity {
-  String get labelKey => 'city_$wire';
-}
-
 /// What the customer reads on the family page: the store's name, the
-/// family's story, and its city.
+/// family's story, and the area it trades in — which also decides which
+/// customers see its food.
 ///
 /// Holds its controllers; the page reaches it through a
 /// `GlobalKey<StoreDetailsCardState>` and asks
@@ -42,7 +39,7 @@ class StoreDetailsCardState extends State<StoreDetailsCard> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.store.name);
   late final _story = TextEditingController(text: widget.store.story);
-  late StoreCity? _city = widget.store.city;
+  late String? _areaId = widget.store.area?.id;
 
   @override
   void dispose() {
@@ -58,7 +55,7 @@ class StoreDetailsCardState extends State<StoreDetailsCard> {
     return StoreFormValues(
       name: _name.text.trim(),
       story: _story.text.trim(),
-      city: _city,
+      areaId: _areaId,
     );
   }
 
@@ -103,24 +100,26 @@ class StoreDetailsCardState extends State<StoreDetailsCard> {
               'store_story_hint'.tr(),
               style: AppStrings.text105w400.c(p.fg3).copyWith(height: 1.5),
             ),
-            SizedBox(height: 16.h),
-            CapsLabel('store_city'.tr()),
-            SizedBox(height: 8.h),
-            Wrap(
-              spacing: 7.w,
-              runSpacing: 7.h,
-              children: [
-                for (final city in StoreCity.values)
-                  PillChip(
-                    label: city.labelKey.tr(),
-                    selected: city == _city,
-                    onPressed: () {
-                      setState(() => _city = city);
-                      widget.onChanged();
-                    },
-                  ),
-              ],
-            ),
+            if (widget.store.areas.isNotEmpty) ...[
+              SizedBox(height: 16.h),
+              CapsLabel('store_city'.tr()),
+              SizedBox(height: 8.h),
+              Wrap(
+                spacing: 7.w,
+                runSpacing: 7.h,
+                children: [
+                  for (final area in widget.store.areas)
+                    PillChip(
+                      label: area.name,
+                      selected: area.id == _areaId,
+                      onPressed: () {
+                        setState(() => _areaId = area.id);
+                        widget.onChanged();
+                      },
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

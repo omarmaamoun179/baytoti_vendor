@@ -263,12 +263,7 @@
   "store_story": "قصة الأسرة",
   "store_story_placeholder": "حدّث العملاء عن مطبخك ووصفاتك…",
   "store_story_hint": "القصة هي ما يبني الثقة في صفحة الأسرة داخل تطبيق العميل.",
-  "store_city": "المدينة",
-  "city_hawalli": "حولي",
-  "city_salmiya": "السالمية",
-  "city_jahra": "الجهراء",
-  "city_farwaniya": "الفروانية",
-  "city_ahmadi": "الأحمدي",
+  "store_city": "المحافظة",
   "store_verification": "التوثيق",
   "document_verified": "موثّق",
   "document_in_review": "قيد المراجعة",
@@ -305,5 +300,6 @@
   "application_step_account_created": "إنشاء الحساب",
   "application_step_documents_review": "مراجعة المستندات",
   "application_step_approved": "اعتماد الأسرة",
-  "application_step_first_product": "أول منتج منشور"
+  "application_step_first_product": "أول منتج منشور",
+  "store_missing": "لا يوجد متجر لهذا الحساب بعد."
 }

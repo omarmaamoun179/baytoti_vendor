@@ -26,12 +26,14 @@ class PendingCover extends Equatable {
 class StoreFormValues extends Equatable {
   final String name;
   final String story;
-  final StoreCity? city;
 
-  const StoreFormValues({required this.name, required this.story, this.city});
+  /// The chosen [StoreArea]'s id; null leaves the area as it is.
+  final String? areaId;
+
+  const StoreFormValues({required this.name, required this.story, this.areaId});
 
   @override
-  List<Object?> get props => [name, story, city];
+  List<Object?> get props => [name, story, areaId];
 }
 
 class StoreState extends Equatable {

@@ -154,7 +154,7 @@ class _StoreViewState extends State<_StoreView> {
         StoreCover(
           source: state.coverSource,
           uploading: state.cover?.isUploading ?? false,
-          onChange: _changeCover,
+          onChange: store.coverEditable ? _changeCover : null,
         ),
         SizedBox(height: 14.h),
         StoreDetailsCard(
@@ -163,8 +163,10 @@ class _StoreViewState extends State<_StoreView> {
           onChanged: _edited,
         ),
         SizedBox(height: 14.h),
-        VerificationCard(documents: store.documents),
-        SizedBox(height: 14.h),
+        if (store.documents.isNotEmpty) ...[
+          VerificationCard(documents: store.documents),
+          SizedBox(height: 14.h),
+        ],
         AccountCard(onSignOut: _signOut),
       ],
     );

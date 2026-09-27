@@ -1,28 +1,20 @@
 import 'package:equatable/equatable.dart';
 
-/// The cities the design offers. Sent as these keys: the contract's example
-/// sends `"city": "حولي"`, the city's Arabic name, and which the server
-/// wants is to be checked.
-enum StoreCity {
-  hawalli('hawalli'),
-  salmiya('salmiya'),
-  jahra('jahra'),
-  farwaniya('farwaniya'),
-  ahmadi('ahmadi');
+/// Where a store trades — on the live API a governorate of the store's
+/// country (`GET /countries/{country}/governorates`), which is what scopes
+/// the customers who see its food. The fixtures offer the design's five
+/// cities.
+class StoreArea extends Equatable {
+  /// The governorate's id, as text.
+  final String id;
 
-  const StoreCity(this.wire);
+  /// Already in the app's language, or as the server spells it.
+  final String name;
 
-  final String wire;
+  const StoreArea({required this.id, required this.name});
 
-  /// Reads the key, or the Arabic name the contract's example uses.
-  static StoreCity? fromWire(String? value) => switch (value) {
-        'hawalli' || 'حولي' => hawalli,
-        'salmiya' || 'السالمية' => salmiya,
-        'jahra' || 'الجهراء' => jahra,
-        'farwaniya' || 'الفروانية' => farwaniya,
-        'ahmadi' || 'الأحمدي' => ahmadi,
-        _ => null,
-      };
+  @override
+  List<Object?> get props => [id, name];
 }
 
 enum DocumentState {
@@ -60,8 +52,9 @@ class StoreDocument extends Equatable {
   List<Object?> get props => [type, label, state];
 }
 
-/// Limits on the store's details — the app's own until the API states its
-/// rules; kept on the domain so the form and the request agree.
+/// Limits on the store's details, kept on the domain so the form and the
+/// request agree. Tighter than the API's `UpdateStoreRequest` (a name of
+/// 2–150, a description up to 5000) — the design's card holds no more.
 class StoreRules {
   StoreRules._();
 
@@ -70,35 +63,55 @@ class StoreRules {
   static const int storyMaxLength = 500;
 }
 
-/// `GET /vendor/store` — what the customer sees on the family's page.
+/// The family's store — what the customer sees on the family's page.
 class StoreProfile extends Equatable {
   final String name;
   final String story;
-  final StoreCity? city;
+
+  /// Where it trades; null until one is chosen.
+  final StoreArea? area;
+
+  /// What [area] may be — the chips the store tab offers.
+  final List<StoreArea> areas;
+
   final String? coverUrl;
   final String? avatarUrl;
   final List<StoreDocument> documents;
 
+  /// Whether a new cover can be saved. The live API takes the cover only as
+  /// a stored path and offers no upload, so there it cannot.
+  final bool coverEditable;
+
   const StoreProfile({
     required this.name,
     this.story = '',
-    this.city,
+    this.area,
+    this.areas = const [],
     this.coverUrl,
     this.avatarUrl,
     this.documents = const [],
+    this.coverEditable = false,
   });
 
   @override
-  List<Object?> get props =>
-      [name, story, city, coverUrl, avatarUrl, documents];
+  List<Object?> get props => [
+        name,
+        story,
+        area,
+        areas,
+        coverUrl,
+        avatarUrl,
+        documents,
+        coverEditable,
+      ];
 }
 
-/// `PATCH /vendor/store` — `{name, story, city, cover_upload_id,
-/// avatar_upload_id}`. A null upload id leaves that image as it is.
+/// What the store tab saves. A null [areaId] leaves the area as it is, and
+/// a null upload id leaves the cover.
 class UpdateStoreParams extends Equatable {
   final String name;
   final String story;
-  final StoreCity? city;
+  final String? areaId;
   final String? coverUploadId;
 
   /// Where the new cover is shown from — the upload's URL. Not sent: the
@@ -108,11 +121,11 @@ class UpdateStoreParams extends Equatable {
   const UpdateStoreParams({
     required this.name,
     required this.story,
-    this.city,
+    this.areaId,
     this.coverUploadId,
     this.coverUrl,
   });
 
   @override
-  List<Object?> get props => [name, story, city, coverUploadId, coverUrl];
+  List<Object?> get props => [name, story, areaId, coverUploadId, coverUrl];
 }

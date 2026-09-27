@@ -67,6 +67,8 @@ import '../../features/products/presentation/cubit/product_editor_cubit.dart';
 import '../../features/products/presentation/cubit/products_cubit.dart';
 import '../../features/store/data/datasources/store_data_source.dart';
 import '../../features/store/data/datasources/store_mock_data_source.dart';
+import '../../features/store/data/datasources/store_remote_data_source.dart';
+import '../../features/store/data/datasources/vendor_store_resolver.dart';
 import '../../features/store/data/repositories/store_repository_impl.dart';
 import '../../features/store/domain/repositories/store_repository.dart';
 import '../../features/store/domain/usecases/store_usecases.dart';

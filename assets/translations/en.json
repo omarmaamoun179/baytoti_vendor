@@ -256,12 +256,7 @@
   "store_story": "Family story",
   "store_story_placeholder": "Tell customers about your kitchen and your recipes…",
   "store_story_hint": "The story is what builds trust on the family page in the customer app.",
-  "store_city": "City",
-  "city_hawalli": "Hawalli",
-  "city_salmiya": "Salmiya",
-  "city_jahra": "Jahra",
-  "city_farwaniya": "Farwaniya",
-  "city_ahmadi": "Ahmadi",
+  "store_city": "Governorate",
   "store_verification": "Verification",
   "document_verified": "Verified",
   "document_in_review": "In review",
@@ -298,5 +293,6 @@
   "application_step_account_created": "Account created",
   "application_step_documents_review": "Documents review",
   "application_step_approved": "Family approved",
-  "application_step_first_product": "First product live"
+  "application_step_first_product": "First product live",
+  "store_missing": "This account has no store yet."
 }

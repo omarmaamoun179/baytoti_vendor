@@ -4,12 +4,14 @@ import '../../../../core/domain/failure.dart';
 import '../../domain/entities/store_profile.dart';
 import '../models/store_profile_model.dart';
 
-/// The vendor store endpoints. Only fixtures implement it today.
+/// The family's store. [StoreRemoteDataSource] reads the live API
+/// (`GET /vendor/stores`, `PUT /vendor/stores/{store}`);
+/// [StoreMockDataSource] answers from fixtures.
 abstract class StoreDataSource {
-  /// `GET /vendor/store`.
+  /// The store, with the areas it may trade in.
   Future<Either<Failure, StoreProfileModel>> getStore();
 
-  /// `PATCH /vendor/store` with [updateStoreBody].
+  /// Saves the details and answers with the store as the server now has it.
   Future<Either<Failure, StoreProfileModel>> updateStore(
     UpdateStoreParams params,
   );

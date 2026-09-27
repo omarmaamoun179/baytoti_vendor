@@ -13,21 +13,30 @@ import 'store_data_source.dart';
 class _StoreRecord {
   Localized name;
   Localized story;
-  StoreCity? city;
+  String? areaId;
   String? coverUrl;
 
   _StoreRecord({
     required this.name,
     required this.story,
-    this.city,
+    this.areaId,
   });
 }
 
 /// The store profile on fixtures, one per account ([MockSessionToken]): the
 /// fixture family's — the design's name, story and Hawalli — or, for a
 /// family that just signed up, its own name and nothing else yet. The
-/// documents are the design's: two verified, food safety in review.
+/// documents are the design's: two verified, food safety in review. The
+/// areas are the design's five cities.
 class StoreMockDataSource implements StoreDataSource {
+  static const List<(String, Localized)> _areas = [
+    ('1', Localized('حولي', 'Hawalli')),
+    ('2', Localized('السالمية', 'Salmiya')),
+    ('3', Localized('الجهراء', 'Jahra')),
+    ('4', Localized('الفروانية', 'Farwaniya')),
+    ('5', Localized('الأحمدي', 'Ahmadi')),
+  ];
+
   static const List<(String, Localized, DocumentState)> _documents = [
     (
       'civil_id',
@@ -76,8 +85,8 @@ class StoreMockDataSource implements StoreDataSource {
           final store = await _store()
             // The family's own words read the same in either language.
             ..name = Localized(name, name)
-            ..story = Localized(story, story)
-            ..city = params.city;
+            ..story = Localized(story, story);
+          if (params.areaId != null) store.areaId = params.areaId;
           if (params.coverUploadId != null) store.coverUrl = params.coverUrl;
 
           return _answer(store);
@@ -108,7 +117,7 @@ class StoreMockDataSource implements StoreDataSource {
           'A home kitchen in Hawalli since 2014. Kuwaiti sweets from family '
               'recipes, baked daily in small batches.',
         ),
-        city: StoreCity.hawalli,
+        areaId: '1',
       );
     });
   }
@@ -119,7 +128,8 @@ class StoreMockDataSource implements StoreDataSource {
     return StoreProfileModel.fromJson({
       'name': store.name.pick(ar),
       'story': store.story.pick(ar),
-      'city': store.city?.wire,
+      'area': _areaJson(store.areaId, ar),
+      'areas': [for (final (id, _) in _areas) _areaJson(id, ar)],
       'cover': store.coverUrl == null ? null : {'url': store.coverUrl},
       'avatar': null,
       'documents': [
@@ -127,5 +137,12 @@ class StoreMockDataSource implements StoreDataSource {
           {'type': type, 'label': label.pick(ar), 'state': state.wire},
       ],
     });
+  }
+
+  static Map<String, dynamic>? _areaJson(String? id, bool ar) {
+    for (final (areaId, name) in _areas) {
+      if (areaId == id) return {'id': areaId, 'name': name.pick(ar)};
+    }
+    return null;
   }
 }

@@ -260,8 +260,17 @@ void _registerOffersFeature() {
 }
 
 void _registerStoreFeature() {
+  // The store the live products source works in, too.
+  sl.registerLazySingleton(
+    () => VendorStoreResolver(sl<NetworkService>(), sl<SessionNotifier>()),
+  );
   sl.registerLazySingleton<StoreDataSource>(
-    () => StoreMockDataSource(sl<TokenStore>(), sl<MockLocale>()),
+    () => useMockData
+        ? StoreMockDataSource(sl<TokenStore>(), sl<MockLocale>())
+        : StoreRemoteDataSource(
+            sl<NetworkService>(),
+            sl<VendorStoreResolver>(),
+          ),
   );
   sl.registerLazySingleton<StoreRepository>(
     () => StoreRepositoryImpl(sl<StoreDataSource>()),

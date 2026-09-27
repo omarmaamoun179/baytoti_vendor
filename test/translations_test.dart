@@ -75,6 +75,7 @@ const List<String> errorMessageKeys = [
   // Store
   'store_failed',
   'store_save_failed',
+  'store_missing',
   'store_cover_uploading',
   'store_cover_failed',
   // Notifications

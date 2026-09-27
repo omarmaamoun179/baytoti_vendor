@@ -7,11 +7,12 @@ import '../../../../core/utils/app_strings.dart';
 import '../../../../core/widgets/network_photo.dart';
 
 /// The family page's cover, with "Change cover" on it. A cover on its way
-/// up shows a spinner.
+/// up shows a spinner. Without [onChange] — a store whose cover cannot be
+/// saved from the app — it is only the picture.
 class StoreCover extends StatelessWidget {
   final String? source;
   final bool uploading;
-  final VoidCallback onChange;
+  final VoidCallback? onChange;
 
   const StoreCover({
     super.key,
@@ -49,25 +50,26 @@ class StoreCover extends StatelessWidget {
                     ),
                   ),
                 ),
-              PositionedDirectional(
-                bottom: 10.r,
-                end: 10.r,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 8.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: p.surf,
-                    borderRadius: BorderRadius.circular(9.r),
-                    boxShadow: p.cardShadow,
-                  ),
-                  child: Text(
-                    'store_change_cover'.tr(),
-                    style: AppStrings.text10w800.c(p.fg),
+              if (onChange != null)
+                PositionedDirectional(
+                  bottom: 10.r,
+                  end: 10.r,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 8.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: p.surf,
+                      borderRadius: BorderRadius.circular(9.r),
+                      boxShadow: p.cardShadow,
+                    ),
+                    child: Text(
+                      'store_change_cover'.tr(),
+                      style: AppStrings.text10w800.c(p.fg),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

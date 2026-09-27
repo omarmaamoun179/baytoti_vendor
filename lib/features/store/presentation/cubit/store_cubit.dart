@@ -73,7 +73,7 @@ class StoreCubit extends BaseCubit<StoreState> {
     final result = await _updateStore(UpdateStoreParams(
       name: values.name,
       story: values.story,
-      city: values.city,
+      areaId: values.areaId,
       coverUploadId: cover?.uploadId,
       coverUrl: cover?.source,
     ));
