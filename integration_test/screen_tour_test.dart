@@ -58,6 +58,12 @@ void main() {
   }
 
   testWidgets('screen tour', (tester) async {
+    // The tour signs in with the fixtures' code, which the live API refuses.
+    expect(
+      useMockData,
+      isTrue,
+      reason: 'Run the tour with --dart-define=USE_MOCK_DATA=true',
+    );
     await EasyLocalization.ensureInitialized();
     await initDependencies();
     await sl<AuthCubit>().restoreSession();

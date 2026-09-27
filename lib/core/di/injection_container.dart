@@ -1,11 +1,9 @@
 part of 'di_exports.dart';
 
-/// True while the app runs on fixtures instead of a live API.
+/// True while the app runs on fixtures instead of the live Betouti API.
 ///
-/// Every feature has only its fixture source today — no server implements
-/// the API contract yet — so this decides nothing but what the onboarding
-/// button says. When a feature gains a remote source, register it beside
-/// the mock and choose between them here:
+/// Every feature with an endpoint registers its remote source beside its
+/// fixtures, and this picks between them:
 ///
 /// ```dart
 /// sl.registerLazySingleton<OrdersDataSource>(
@@ -15,10 +13,16 @@ part of 'di_exports.dart';
 /// );
 /// ```
 ///
-/// Flip it with `--dart-define=USE_MOCK_DATA=false`.
+/// Offers have no endpoint and stay on fixtures either way. It also decides
+/// what the onboarding button says ("Simulate approval" plays the back
+/// office on fixtures; "Check status" re-reads the review).
+///
+/// Defaults to the live API. Run on fixtures — the screen tour needs them,
+/// it signs in with the fixtures' code — with
+/// `--dart-define=USE_MOCK_DATA=true`.
 const bool useMockData = bool.fromEnvironment(
   'USE_MOCK_DATA',
-  defaultValue: true,
+  defaultValue: false,
 );
 
 /// Wires up everything the app needs. Called once from `bootstrap()` before
@@ -32,7 +36,8 @@ const bool useMockData = bool.fromEnvironment(
 ///
 /// Data sources are lazy singletons because a fixture source holds the fake
 /// backend's state for the run — an accepted order, a new product — and a
-/// second instance would forget it.
+/// live one its caches (the store id, the governorates); a second instance
+/// would forget them.
 Future<void> initDependencies() async {
   await _registerAppInfo();
   await _registerStorage();
@@ -84,7 +89,7 @@ Future<void> _registerStorage() async {
   );
 }
 
-/// Ready for the remote sources to come: none calls it yet.
+/// The HTTP stack every remote source calls through.
 void _registerNetwork() {
   sl.registerSingleton<InternetConnection>(InternetConnection());
   sl.registerSingleton<NetworkInfo>(NetworkInfoImpl(sl<InternetConnection>()));
@@ -256,6 +261,7 @@ void _registerDashboardFeature() {
 }
 
 void _registerOffersFeature() {
+  // No endpoint on the API: fixtures, whatever `useMockData` says.
   sl.registerLazySingleton<OffersDataSource>(
     () => OffersMockDataSource(sl<MockLocale>()),
   );

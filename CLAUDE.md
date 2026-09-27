@@ -5,19 +5,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 **Baytouti (بيتوتي) — the producing family's app**: the vendor side of a
-Kuwaiti marketplace for home-made goods. A family signs up, waits for
-approval, then runs its store: orders, products, offers, the store profile.
+marketplace for home-cooked food. A family signs up, waits for approval,
+then runs its store: orders, products, offers, the store profile.
 
 The design is `Baytouti Vendor App.dc.html` in the Claude Design project
 "Dual App Design: Customer and Vendor" (`abedcbee-1f5b-4ec4-b8fb-6675543c7a53`),
-beside `Baytouti Customer App.dc.html` and **`Baytouti API Spec.dc.html` — the
-API contract** every model here reads. Read them with the `DesignSync` tool
-(`get_file`). `lib/core` started as a copy of the Cloak vendor app's core
-(`../cloack_vendor`) and was re-branded here; the two are not linked.
+beside `Baytouti Customer App.dc.html` and `Baytouti API Spec.dc.html` (the
+design-time contract the fixtures still answer in). Read them with the
+`DesignSync` tool (`get_file`). `lib/core` started as a copy of the Cloak
+vendor app's core (`../cloack_vendor`) and was re-branded here; the two are
+not linked, but the two backends are the same Laravel family, so Cloak's
+remote sources and their notes are the best guide to what an answer holds.
 
-**There is no server yet.** Every feature runs on fixtures. The contract names
-the base URL `https://api.baytouti.com/v1/` and every path is declared in
-`ApiEndPoint`, but no endpoint is called.
+**The server is the Betouti Laravel API** at
+`https://betouti.alqudiry-solutions.com/api/v1/`. Its OpenAPI (Scramble) is at
+`https://betouti.alqudiry-solutions.com/docs/api.json` — the authoritative
+reference for paths and request bodies, per the backend's *Mobile API
+Integration Guide v1.0*. The spec types most answers only as "object", so
+the models read leniently and name their guesses. The backend says *vendor*
+for the family and *store* for its shop; products live under a store.
+
+**Repository**: `github.com/omarmaamoun179/baytoti_vendor`, branch `main`.
 
 ## Commands
 
@@ -33,7 +41,9 @@ flutter run
 
 # The screen tour: signs in and up through the real UI on a simulator and
 # photographs every screen (iPhone 16 Pro is the design's 402×874 frame).
+# On fixtures only — it signs in with their code.
 SCREENSHOT_DIR=build/screenshots flutter drive \
+  --dart-define=USE_MOCK_DATA=true \
   --driver=test_driver/integration_test.dart \
   --target=integration_test/screen_tour_test.dart -d "iPhone 16 Pro"
 ```
@@ -57,15 +67,16 @@ changed since the last clean one).
 ### Build-time switches
 
 ```bash
-flutter run --dart-define=USE_MOCK_DATA=false      # see below
-flutter run --dart-define=BASE_URL=https://staging.example.com/v1/
+flutter run --dart-define=USE_MOCK_DATA=true       # fixtures instead of the API
+flutter run --dart-define=BASE_URL=https://staging.example.com/api/v1/
 ```
 
-`useMockData` (in `core/di/injection_container.dart`) defaults to **true**.
-Since no feature has a remote source yet, it decides only what the onboarding
-button says ("Simulate approval" vs "Check status"). When a feature gains a
-remote source, register it beside the mock and pick between them with it —
-the doc comment there shows the shape.
+`useMockData` (in `core/di/injection_container.dart`) defaults to **false** —
+the live API. Every feature with an endpoint registers its remote source
+beside its fixtures and picks between them with it (the doc comment there
+shows the shape); offers have no endpoint and stay on fixtures either way.
+It also decides what the onboarding button says ("Simulate approval" on
+fixtures, "Check status" live).
 
 `lib/main.dart` is one line; everything before the first frame is in
 `core/app/bootstrap.dart`, in order: binding → localization → timezone → DI →
@@ -81,72 +92,131 @@ and built in its style: the splash, sign-in / sign-up and the code screen
 over `/products/:id`), the reject sheet, and an account card (language,
 sign-out) at the foot of the store tab.
 
-- **Fixtures, and how they behave.** Each feature has a `*DataSource`
-  interface and a `*MockDataSource` answering in the contract's JSON shapes,
-  parsed by the same models a remote source will use. They live as lazy
-  singletons, so changes last the run (an accepted order, a new product), and
-  they refuse what the server would (a move that is not `next_status`,
-  publishing before review, a fourth offer). `OrderFixtures` and
-  `ProductFixtures` are shared with the dashboard fixture so its counts agree
-  with the tabs. Latency is `mockLatency` (350 ms).
-- **Fixtures answer in the app's language** (`MockLocale`), as the contract
-  says the server does (`Accept-Language`). They read the stored language
-  code, which `LocaleSync` (`core/app/`) writes whenever the locale changes —
-  nothing wrote it before, so the network header was always Arabic. Tabs stay
-  alive across a switch, so they re-read through `LocaleChangeListener`.
-- **Who is signed in** reaches the fixtures through the token, as it reaches
-  the server: `MockSessionToken` encodes new-or-returning family, phone and
-  family name. The sign-in tab opens the fixture family ("أسرة أم عبدالله",
-  approved); the sign-up tab opens a new family under review. **Any number
-  gets code `1234`**, which the code screen states on fixtures (`demo_code`).
-  A mock token sent to a real server is refused and the 401 handling ends the
-  session.
-- **Auth** follows the contract: `POST /auth/request-otp` (`mode` login or
-  signup, `full_name` for signup) → `POST /auth/verify-otp` → token and user,
-  kept by `AuthLocalDataSource`. The phone is entered in
-  `PhoneTextFormField` (Kuwait and Egypt, Kuwait first) and sent as the
-  E.164 number the field reports — see Localization.
+- **Two sources per feature.** Each feature has a `*DataSource` interface, a
+  `*RemoteDataSource` for the live API and a `*MockDataSource` for fixtures.
+  The fixtures still answer in the design contract's shapes; a model reads
+  those with `fromJson` and the live API with `fromApi` (or
+  `fromProfile`/`fromMessage`), both building the same entity. Fixture sources
+  are lazy singletons, so changes last the run, and they refuse what the
+  server would. `OrderFixtures` and `ProductFixtures` are shared with the
+  dashboard fixture so its counts agree with the tabs. Latency is
+  `mockLatency` (350 ms).
+- **Language.** Fixtures answer in the app's language (`MockLocale`), read
+  from the stored code that `LocaleSync` (`core/app/`) writes; tabs re-read
+  through `LocaleChangeListener`. Requests send `Accept-Language` and
+  `x-custom-lang`, but on 2026-09-28 the server answered validation errors in
+  Arabic whatever either said, and some messages ("Invalid OTP.") are English
+  only — the server's to fix.
+- **Who is signed in** reaches the fixtures through the token:
+  `MockSessionToken` encodes new-or-returning family, phone and family name.
+  On fixtures a number signs in to the fixture family ("أسرة أم عبدالله",
+  approved) unless it registered this run; **any number gets code `1234`**.
+  A mock token sent to the live API is refused, and the 401 ends the session.
+- **Auth.** Sign-in: `POST auth/request-otp {phone}` → `POST auth/verify-otp
+  {phone, otp}`. The API names no OTP request, so the code is checked
+  against the number, sent as digits (`^[0-9]{8,15}$`, the E.164 from
+  `PhoneTextFormField` without `+`); a resend asks again. While SMS is
+  stubbed the server puts the code at the end of its message (`"… demo otp
+  :561228"`), shown under the boxes (`otp_demo_hint`), and its length sets
+  the boxes (six otherwise). A wrong code is a 422 on `otp`. Sign-up first
+  sends `POST auth/vendor/register` (the form adds email, password and
+  confirmation; the family name is the account's `name`, `business_name`
+  and `store_name`), which issues no token, then asks for the code. If the
+  code fails after the account exists, the family is told to log in with the
+  same number (`signup_code_failed`). `verify-otp`'s answer is read leniently
+  (token flat or nested, user wrapped or not); a token without an account is
+  kept and `GET auth/me` read with it. **Unverified live:** that answer's
+  exact shape, and whether sign-in by code works for every vendor account.
 - **The onboarding gate**: `AccountGate` wraps the shell and every pushed
-  route; until `GET /vendor/application` says `approved`, the family sees
-  `ApplicationStatusPage` (V01). `ApplicationCubit` is app-wide and follows
-  `SessionNotifier`. On fixtures "Simulate approval" moves the review a step
-  (`advanceReview`); against the API that method should re-read the
-  application — approval is the back office's.
-- **Orders**: `GET /vendor/orders?state=all|new|preparing|done` answers with
-  every tab's `counts`; details carry `next_status` and `can_reject`, and the
-  one advance button sends `next_status` (the server owns the machine). Reject
-  asks for a `reason` in a sheet. The details page pops `true` after a move so
-  the opener re-reads. The customer's number is masked; the call button says
-  calling is coming (the proxied-call endpoint is not specified).
-- **Products**: list with debounced search and the publish switch
-  (`PATCH …/visibility`, refused before review or at stock 0). The form covers
-  every field of `POST /vendor/products`; photos upload as soon as they are
-  picked (`POST /uploads`, the `uploads` feature) and go out as
-  `image_upload_ids`, first is the cover. Review needs a photo; a draft does
-  not. `GET /vendor/products/{id}` and the images' `upload_id` are guesses —
-  the contract lists only the `PATCH`.
-- **Offers**: store-wide percentage discounts inside the contract's `limits`
-  (5–70 % in 5s, three at once) with an end date (`ends_at` is required by the
-  contract, not drawn in the design).
-- **Store**: cover, name, story, city, documents; `PATCH /vendor/store`.
-  Cities are sent as keys (`hawalli`); the contract's example sends the
-  Arabic name — check which the server wants.
-- **Notifications**: opening the list marks everything read (the bell's dot
-  goes) while the rows keep their unread highlight for the visit.
+  route; until the review is approved the family sees `ApplicationStatusPage`
+  (V01). Live, the review is `GET vendor/profile`'s `status`: `active` /
+  `approved` open the store, a refusal (`rejected`, `suspended`…) reads as
+  rejected, anything else holds the family at the gate. The timeline is drawn
+  from that one status. `ApplicationCubit` is app-wide and follows
+  `SessionNotifier`.
+- **The store** is the first of `GET vendor/stores` — registration makes
+  exactly one. `VendorStoreResolver` keeps its id for the session (forgotten
+  on sign-out) for the store and products sources. The store tab saves with
+  `PUT vendor/stores/{store}`: name, description, and — when one is chosen —
+  `country_id` + `governorate_id`. Only edited fields go out: Laravel
+  updates from the validated input, and image URLs are never echoed back. The
+  place is a `StoreArea`: live, the governorates of the store's country
+  (`GET countries/{id}/governorates`, cached; a store with no country is
+  offered the first active one's — on 2026-09-28 only Egypt existed); on
+  fixtures the design's five Kuwaiti cities. The API takes `logo`/`banner`
+  only as stored paths and has no upload, so "Change cover" is not offered
+  live (`StoreProfile.coverEditable`); it keeps no documents, so the
+  verification card is hidden there.
+- **Products** live under the store: `GET/POST vendor/stores/{store}/products`,
+  `GET/PUT …/{product}`, `POST …/{product}/submit-review`; categories are
+  `GET categories/active`, flattened. State is moderation first
+  (`approval_status`: draft · pending_review · approved · rejected), then the
+  vendor's switch (`status`): approved + on is published, approved + off
+  hidden. **The API keeps no stock count for food**, only `is_available`, so
+  the domain, the form (a switch beside the price), the list and the fixtures
+  speak of availability. Preparation time is `preparation_time_minutes`
+  (the three chips carry `PreparationTime.minutes`). Money is `base_price` in
+  dinars, read into fils. The publish switch is `PUT {status}`. A save
+  never sends to review itself: the repository calls `submitForReview` once
+  it lands, and a refused review is carried on the result
+  (`ProductSaveResult.reviewRefusal`), never reported as a failed save — a
+  retry would make the product twice. Search is sent as `search` and matched
+  on the rows too (the spec documents none). **Photos are a guess to confirm
+  with the backend**: live there is no upload endpoint, so
+  `DeviceUploadsDataSource` checks the 5120 KB limit and keeps the file
+  (`device:` upload ids), and the save goes multipart (update as `POST` +
+  `_method=PUT`) with `images[i]` — `image` as the file for a picked photo,
+  `id` for a kept one, the cover `is_primary`. The guide's food product has an
+  `images` gallery, but the spec still types photos under the clothing-era
+  `colors[].images` (each colour needing a size variant). Photos are read
+  from `images`, then `colors[].images`, then `thumbnail`.
+- **Orders**: `GET vendor/orders`, `GET vendor/orders/{order}`,
+  `PATCH vendor/orders/{order}/status`. The API's six statuses are read onto
+  the app's and sent back exactly: pending → placed, confirmed → accepted,
+  processing → preparing, shipped → out for delivery, delivered, cancelled.
+  The resource carries no next move, so the next step on that path is
+  offered; only a new order can be turned down, which is `cancelled` — the
+  reason sheet's answer stays with the app (the API takes none). The endpoint
+  takes no filter: tabs filter the rows they read, a filtered tab reading up
+  to five pages to fill the screen; the counts come from the first page
+  (`all` = `meta.total`, "done" = the rest) and `OrdersCubit.loadMore` keeps
+  them. The customer is the address's recipient, their number masked; the
+  gross is the order's total (no payout breakdown live). The details page
+  pops `true` after a move so the opener re-reads. The call button says
+  calling is coming.
+- **Dashboard**: `GET vendor/home?period=today`, and beside it
+  `?period=week` for the chart, drawn only when the answer's `period.key` is
+  `week` (Cloak's server answered every period with today) — otherwise the
+  card is left out. Stats give new orders, today's orders and products
+  switched off ("Not available", `out_of_stock_products`). When
+  `recent_orders` is empty or today's count is missing, the first page of
+  `vendor/orders` fills in.
+- **Offers**: fixtures only — the API has no offers endpoint. Store-wide
+  percentage discounts (5–70 % in 5s, three at once) with an end date.
+- **Notifications**: `GET notifications`, `PATCH notifications/read-all` —
+  the account's own, shared by both apps. Unread is a null `read_at`; the
+  kind is the `type` key or the words of a Laravel class name; the target is
+  `data.entity`/`entity_id`. The page carries no unread count, so its own
+  unread rows feed the bell. Opening the list marks everything read.
 - **App-wide cubits** (`core/app/app.dart`): `NetworkCubit`, `AuthCubit`,
   `ApplicationCubit`, `OrdersBadgeCubit` (fed by whichever screen read the
-  server's new-order count last — it reads nothing itself),
-  `NotificationBadgeCubit`.
-- **Guessed response shapes.** The contract gives examples, not schemas. Money
-  is read from `*_fils` and times from ISO fields (the contract's conventions),
-  never from its `_display` strings, so the app formats both itself
-  (`Money.display`, `relativeTimeLabel`). Each model's doc comment shows the
-  JSON it reads and names its guesses.
-- **Not done**: the vendor sign-up *application* form (documents upload,
-  `POST /vendor/applications`) is not in the design; the splash is Flutter
-  only (no native splash or launcher icons generated); identifiers are still
-  the template's `com.example.baytoti_vendor`; Android release is signed with
-  the debug key.
+  new-order count last — it reads nothing itself), `NotificationBadgeCubit`.
+- **Money and time.** The app works in integer fils and formats both itself
+  (`Money.display`, `relativeTimeLabel`). Live money arrives as dinar
+  strings (`"4.250"`) and is converted at the model; the currency is printed
+  as KWD whatever the store's country — worth deciding now that the server's
+  only country is Egypt.
+- **Backend issues seen on 2026-09-28**, for the backend team: debugging is
+  on in production (a 404 or 500 answers with the exception, file paths and
+  trace — the app shows `server_error` for any 5xx and renames 404s); the
+  public `GET products` and `GET stores` answer 500 without a token
+  (`LocationContextService` given a null user); validation messages ignore
+  the language headers.
+- **Not done**: the splash is Flutter only (no native splash or launcher
+  icons generated); identifiers are still the template's
+  `com.example.baytoti_vendor`; Android release is signed with the debug key;
+  nothing refreshes a token (Sanctum tokens do not refresh); location context
+  (`location/context`) is the customer app's concern and not called here.
 
 ## Architecture
 
@@ -307,26 +377,27 @@ Any deviation from this triple is a bug, not a style choice.
 
 ### Networking
 
-**Check the envelope first when the API lands.** The core still parses Cloak's
-Laravel envelope: `ApiResponse` (`core/network/api_response.dart`) expects
-`{success, message, data, errors}` and `checkedResponse` checks `success`. The
-Baytouti contract answers bare objects and refuses with
-`{"error": {"code", "message", "field", "details"}}`. Whichever the server
-really does, adapt `ApiResponse` / `api_error_handler.dart` once, in core —
-never per feature. The contract's `code`s the app handles: `otp_invalid`,
-`otp_expired`, `rate_limited`, `vendor_not_approved`, `product_pending_review`.
+**The envelope** is Laravel's, parsed once in `ApiResponse`
+(`core/network/api_response.dart`): `{success, message, data, errors}`, with
+`links`/`meta` beside `data` on a paginated answer. `checkedResponse` throws
+`RequestException` unless `success`; a 422 carries `errors` (first message per
+field, flattened by `flattenFieldErrors`). A dead token is refused with a bare
+`401 {"message": "Unauthenticated."}`. A 5xx never shows the server's own
+words — with debugging on they are Laravel's exception and trace — so
+`ensureOk` sends up `server_error`. Rename a 404 per call with
+`messageForStatus` for the same reason.
 
 `ApiEndPoint` (`core/network/api_endpoints.dart`) holds every path, relative to
 `baseUrl`, which already carries the version prefix **and a trailing slash**
 — dropping it collapses `/v1/vendor/orders` into `/v1vendor/orders`.
 
-Authenticated calls get the token for free by passing no `headers`. A 401 on
-a call sent with the stored token ends the session: `NetworkServiceImpl` drops
-the token and throws `SessionExpiredException`, and
-`AuthCubit.sessionExpired()` forgets the rest. The contract does issue a
-`refresh_token` and lists `POST /auth/refresh`; `TokenStore` keeps it, but
-nothing refreshes yet. Pass `skipAuthRefresh: true` for the public endpoints
-(the OTP pair), where a 401 means a wrong code, not a dead session.
+Authenticated calls get the token for free by passing no `headers` (a
+Sanctum bearer token). A 401 on a call sent with the stored token ends the
+session: `NetworkServiceImpl` drops the token and throws
+`SessionExpiredException`, and `AuthCubit.sessionExpired()` forgets the rest.
+Sanctum tokens do not refresh. Pass `skipAuthRefresh: true` for the public
+endpoints (register, the OTP pair, categories, countries), where a 401 means
+a refusal, not a dead session.
 
 **Nothing may reach the network before `runApp`.** The requests inspector's
 controller is a singleton created by whoever asks first; when that is the Dio
@@ -334,20 +405,19 @@ interceptor instead of the `RequestsInspector` widget, it is created disabled
 and silently drops every request for the rest of the run.
 
 Limits and lengths live on the **domain entity** (`ProductRules`,
-`StoreRules`, `FamilyName`, `KuwaitPhone`), not only in a validator or a
-widget, so the UI and the wire cannot drift apart. The contract states none,
-so these are the app's own until the API publishes its rules. **Money is
-integer fils** (`price_fils: 4250` = 4.250 KWD); `Money.display(fils)` prints
-it with Western digits and the currency in the app's language.
+`StoreRules`, `FamilyName`, `SignupDetails`, `OtpChallenge.codeLength`), not
+only in a validator or a widget, so the UI and the wire cannot drift apart;
+each sits inside the OpenAPI schema's own. **Money is integer fils** in the
+app (4250 = 4.250 KWD); `Money.display(fils)` prints it with Western digits
+and the currency in the app's language.
 
 ### Pagination
 
-The core pages by number: `ApiResponse` reads `meta` (siblings of `data`) into
-`currentPage`, `lastPage`, `perPage`, `total`, `hasMore`, and one page becomes
-`Paged<T>` (`core/domain/paged.dart`) with `hasMore`, `nextPage` and `append`.
-The fixtures answer with `meta` inside the payload. **The contract pages with
-cursors** (`?cursor=&limit=` → `{items, next_cursor}`) — if the server does,
-the list models and query objects change together.
+The core pages by number: `ApiResponse` reads `meta` (siblings of `data`)
+into `currentPage`, `lastPage`, `perPage`, `total`, `hasMore`, and one page
+becomes `Paged<T>` (`core/domain/paged.dart`) with `hasMore`, `nextPage` and
+`append`. The live API pages the same way (Laravel's `meta`/`links`); the
+fixtures answer with `meta` inside the payload.
 
 **`meta` decides whether another page exists. Never the row count.** A
 filtered page can be shorter than `perPage` without being the last one, and a
@@ -373,7 +443,7 @@ is vendored under `third_party/` because every published version caps at
 A search box that hits the server is debounced in the cubit with rxdart —
 `BehaviorSubject` → `debounceTime(500ms).distinct()`, closed in `close()`.
 Query objects **omit absent values**: the network layer does not strip nulls,
-and `q=` on the wire searches for the empty string.
+and `search=` on the wire searches for the empty string.
 
 ### Routing
 
