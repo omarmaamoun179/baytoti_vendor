@@ -302,5 +302,6 @@
   "address_block": "Block {}",
   "address_building": "Building {}",
   "address_floor": "Floor {}",
-  "address_apartment": "Apt {}"
+  "address_apartment": "Apt {}",
+  "dashboard_change_vs_previous": "{} vs the previous period"
 }

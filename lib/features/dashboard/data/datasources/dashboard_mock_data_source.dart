@@ -73,7 +73,7 @@ class DashboardMockDataSource implements DashboardDataSource {
                   .length,
               'orders_today': today.length,
               'rating': _rating,
-              'low_stock_count':
+              'unavailable_count':
                   _products.products.where((p) => !p.isAvailable).length,
             },
             'sales_last_7_days': [

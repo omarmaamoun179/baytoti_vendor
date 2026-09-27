@@ -58,7 +58,8 @@ class SignupDetails extends Equatable {
   });
 
   @override
-  List<Object?> get props => [familyName, email, password, passwordConfirmation];
+  List<Object?> get props =>
+      [familyName, email, password, passwordConfirmation];
 
   @override
   String toString() => 'SignupDetails($familyName, $email, password: ***)';

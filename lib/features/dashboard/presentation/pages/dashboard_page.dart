@@ -136,13 +136,15 @@ class _DashboardView extends StatelessWidget {
           onNewOrders: () => context.go(
             '${AppRoutes.orders}?${AppRoutes.tabQuery}=${OrderTab.fresh.wire}',
           ),
-          onLowStock: () => context.go(AppRoutes.products),
+          onUnavailable: () => context.go(AppRoutes.products),
         ),
-        SizedBox(height: 12.h),
-        WeeklySalesCard(
-          week: dashboard.week,
-          totalFils: dashboard.weekTotalFils,
-        ),
+        if (dashboard.week.isNotEmpty) ...[
+          SizedBox(height: 12.h),
+          WeeklySalesCard(
+            week: dashboard.week,
+            totalFils: dashboard.weekTotalFils,
+          ),
+        ],
         SectionHeader(
           title: 'dashboard_needs_action'.tr(),
           actionLabel: 'see_all'.tr(),

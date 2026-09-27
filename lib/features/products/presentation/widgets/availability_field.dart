@@ -44,8 +44,9 @@ class AvailabilityField extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    (value ? 'product_available_to_order' : 'product_out_of_stock')
-                        .tr(),
+                    value
+                        ? 'product_available_to_order'.tr()
+                        : 'product_out_of_stock'.tr(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppStrings.text12w600.c(value ? p.fg : p.amberInk),

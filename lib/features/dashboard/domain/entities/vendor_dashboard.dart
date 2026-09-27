@@ -24,22 +24,25 @@ class DashboardKpis extends Equatable {
   /// The family's rating; null before the first review.
   final double? rating;
 
-  final int lowStockCount;
+  /// Products nobody can order right now (`is_available` off) — what the
+  /// API keeps for food in place of stock running low.
+  final int unavailableCount;
 
   const DashboardKpis({
     this.newOrders = 0,
     this.ordersToday = 0,
     this.rating,
-    this.lowStockCount = 0,
+    this.unavailableCount = 0,
   });
 
   @override
-  List<Object?> get props => [newOrders, ordersToday, rating, lowStockCount];
+  List<Object?> get props =>
+      [newOrders, ordersToday, rating, unavailableCount];
 }
 
-/// `GET /vendor/dashboard` — the whole home screen in one call: today's
-/// sales first, then the indicators, the week, and the orders needing
-/// action. The dashboard opens on a decision, not a report.
+/// The whole home screen: today's sales first, then the indicators, the
+/// week, and the orders needing action. The dashboard opens on a decision,
+/// not a report.
 class VendorDashboard extends Equatable {
   final int salesTodayFils;
 
@@ -49,7 +52,8 @@ class VendorDashboard extends Equatable {
 
   final DashboardKpis kpis;
 
-  /// Oldest first; the last bar is today.
+  /// Oldest first; the last bar is today. Empty when the server would not
+  /// answer for a week, and the card is then left out.
   final List<DailySales> week;
 
   final int weekTotalFils;

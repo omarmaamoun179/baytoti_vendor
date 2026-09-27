@@ -309,5 +309,6 @@
   "address_block": "قطعة {}",
   "address_building": "مبنى {}",
   "address_floor": "الطابق {}",
-  "address_apartment": "شقة {}"
+  "address_apartment": "شقة {}",
+  "dashboard_change_vs_previous": "{} مقارنة بالفترة السابقة"
 }

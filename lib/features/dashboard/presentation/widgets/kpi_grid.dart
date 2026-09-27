@@ -9,17 +9,17 @@ import '../../domain/entities/vendor_dashboard.dart';
 
 /// The four indicators under the sales card: new orders in amber, today's
 /// orders, the family's rating in the accent, products running low. New
-/// orders and low stock open the list they count.
+/// orders and unavailable products open the list they count.
 class KpiGrid extends StatelessWidget {
   final DashboardKpis kpis;
   final VoidCallback onNewOrders;
-  final VoidCallback onLowStock;
+  final VoidCallback onUnavailable;
 
   const KpiGrid({
     super.key,
     required this.kpis,
     required this.onNewOrders,
-    required this.onLowStock,
+    required this.onUnavailable,
   });
 
   @override
@@ -59,10 +59,10 @@ class KpiGrid extends StatelessWidget {
             SizedBox(width: 10.w),
             _buildKpi(
               context,
-              value: '${kpis.lowStockCount}',
+              value: '${kpis.unavailableCount}',
               label: 'dashboard_kpi_low_stock'.tr(),
               color: p.fg,
-              onTap: onLowStock,
+              onTap: onUnavailable,
             ),
           ],
         ),

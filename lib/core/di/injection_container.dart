@@ -237,11 +237,13 @@ void _registerProductsFeature() {
 
 void _registerDashboardFeature() {
   sl.registerLazySingleton<DashboardDataSource>(
-    () => DashboardMockDataSource(
-      sl<OrderFixtures>(),
-      sl<ProductFixtures>(),
-      sl<MockLocale>(),
-    ),
+    () => useMockData
+        ? DashboardMockDataSource(
+            sl<OrderFixtures>(),
+            sl<ProductFixtures>(),
+            sl<MockLocale>(),
+          )
+        : DashboardRemoteDataSource(sl<NetworkService>()),
   );
   sl.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(sl<DashboardDataSource>()),

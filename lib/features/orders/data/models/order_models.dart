@@ -340,7 +340,8 @@ String? _masked(String? phone) {
 /// `حولي · قطعة 3 · شارع … · مبنى 12`. Parts the customer left out are
 /// skipped; the city comes last, the directions after it.
 String? _addressLine(Map<String, dynamic> address) {
-  String? labelled(String key, String label) => switch (asString(address[key])) {
+  String? labelled(String key, String label) =>
+      switch (asString(address[key])) {
         final value? => label.tr(args: [value]),
         null => null,
       };

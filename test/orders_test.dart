@@ -92,7 +92,8 @@ void main() {
       final before = (await dashboard.getDashboard())
           .getOrElse(() => throw 'failed');
       expect(before.kpis.newOrders, newOrders());
-      expect(before.kpis.lowStockCount, 3);
+      // Only the kunafa cannot be ordered.
+      expect(before.kpis.unavailableCount, 1);
       expect(before.week, hasLength(7));
 
       await source.advance('ord_2041', OrderStatus.accepted);
@@ -214,7 +215,12 @@ void main() {
       },
       'items_count': 2,
       'items': [
-        {'product_id': 3, 'product_name': 'كيك', 'quantity': 2, 'total': '8.500'},
+        {
+          'product_id': 3,
+          'product_name': 'كيك',
+          'quantity': 2,
+          'total': '8.500',
+        },
       ],
       'created_at': '2026-09-21T14:10:00.000000Z',
     };
@@ -238,7 +244,8 @@ void main() {
       expect(order.customer.phoneMasked, '•••• 2244');
       expect(order.lines.single.lineTotalFils, 8500);
 
-      final shipped = VendorOrderModel.fromApi({...resource, 'status': 'shipped'});
+      final shipped =
+          VendorOrderModel.fromApi({...resource, 'status': 'shipped'});
       expect(shipped.status, OrderStatus.outForDelivery);
       expect(shipped.nextStatus, OrderStatus.delivered);
       expect(shipped.canReject, isFalse);
