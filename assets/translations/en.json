@@ -294,5 +294,9 @@
   "signup_failed": "Couldn’t create the account.",
   "signup_code_failed": "Your account was created, but the code didn’t go out. Log in with the same number to get one.",
   "phone_taken": "That number already has an account. Log in instead.",
-  "auth_token_missing": "The server confirmed the code but sent no session. Try again."
+  "auth_token_missing": "The server confirmed the code but sent no session. Try again.",
+  "application_step_account_created": "Account created",
+  "application_step_documents_review": "Documents review",
+  "application_step_approved": "Family approved",
+  "application_step_first_product": "First product live"
 }

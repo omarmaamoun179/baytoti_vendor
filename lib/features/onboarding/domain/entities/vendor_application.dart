@@ -39,8 +39,9 @@ class ApplicationStep extends Equatable {
   List<Object?> get props => [key, label, done];
 }
 
-/// `GET /vendor/application`. Every other vendor endpoint answers
-/// `403 vendor_not_approved` until [status] is [ReviewStatus.approved].
+/// Where the platform's review of the family stands — on the live API, the
+/// `status` of `GET /vendor/profile`. The store screens stay behind the
+/// gate until [status] is [ReviewStatus.approved].
 class VendorApplication extends Equatable {
   final ReviewStatus status;
 

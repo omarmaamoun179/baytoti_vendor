@@ -156,7 +156,9 @@ void _registerAuthFeature() {
 
 void _registerOnboardingFeature() {
   sl.registerLazySingleton<ApplicationDataSource>(
-    () => ApplicationMockDataSource(sl<TokenStore>(), sl<MockLocale>()),
+    () => useMockData
+        ? ApplicationMockDataSource(sl<TokenStore>(), sl<MockLocale>())
+        : ApplicationRemoteDataSource(sl<NetworkService>()),
   );
   sl.registerLazySingleton<ApplicationRepository>(
     () => ApplicationRepositoryImpl(sl<ApplicationDataSource>()),

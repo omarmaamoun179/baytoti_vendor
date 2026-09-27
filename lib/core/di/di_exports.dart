@@ -43,6 +43,7 @@ import '../../features/offers/domain/usecases/offers_usecases.dart';
 import '../../features/offers/presentation/cubit/offers_cubit.dart';
 import '../../features/onboarding/data/datasources/application_data_source.dart';
 import '../../features/onboarding/data/datasources/application_mock_data_source.dart';
+import '../../features/onboarding/data/datasources/application_remote_data_source.dart';
 import '../../features/onboarding/data/repositories/application_repository_impl.dart';
 import '../../features/onboarding/domain/repositories/application_repository.dart';
 import '../../features/onboarding/domain/usecases/application_usecases.dart';

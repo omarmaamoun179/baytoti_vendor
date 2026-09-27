@@ -301,5 +301,9 @@
   "signup_failed": "تعذّر إنشاء الحساب.",
   "signup_code_failed": "تم إنشاء حسابك لكن تعذّر إرسال الرمز. سجّل الدخول بالرقم نفسه لتحصل عليه.",
   "phone_taken": "لهذا الرقم حساب بالفعل. سجّل الدخول بدلاً من ذلك.",
-  "auth_token_missing": "أكّد الخادم الرمز لكنه لم يرسل جلسة. حاول مرة أخرى."
+  "auth_token_missing": "أكّد الخادم الرمز لكنه لم يرسل جلسة. حاول مرة أخرى.",
+  "application_step_account_created": "إنشاء الحساب",
+  "application_step_documents_review": "مراجعة المستندات",
+  "application_step_approved": "اعتماد الأسرة",
+  "application_step_first_product": "أول منتج منشور"
 }

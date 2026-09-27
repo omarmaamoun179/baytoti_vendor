@@ -1,6 +1,7 @@
 import 'package:baytoti_vendor/core/app/session_notifier.dart';
 import 'package:baytoti_vendor/core/mock/mock_locale.dart';
 import 'package:baytoti_vendor/features/onboarding/data/datasources/application_mock_data_source.dart';
+import 'package:baytoti_vendor/features/onboarding/data/models/vendor_application_model.dart';
 import 'package:baytoti_vendor/features/onboarding/data/repositories/application_repository_impl.dart';
 import 'package:baytoti_vendor/features/onboarding/domain/entities/vendor_application.dart';
 import 'package:baytoti_vendor/features/onboarding/domain/usecases/application_usecases.dart';
@@ -101,6 +102,34 @@ void main() {
       await cubit.advance();
       expect(cubit.state.isApproved, isTrue);
       expect(cubit.state.advancing, isFalse);
+    });
+  });
+
+  group('the review on /vendor/profile', () {
+    VendorApplicationModel read(Object? status) =>
+        VendorApplicationModel.fromProfile({
+          'business': {'name': 'أسرة أم عبدالله'},
+          'status': status,
+        });
+
+    test('active and approved open the store', () {
+      expect(read('active').isApproved, isTrue);
+      expect(read('approved').isApproved, isTrue);
+    });
+
+    test('pending, absent and unknown hold the family at the gate', () {
+      expect(read('pending').status, ReviewStatus.underReview);
+      expect(read(null).status, ReviewStatus.underReview);
+      expect(read('whatever').status, ReviewStatus.underReview);
+    });
+
+    test('a refusal reads as rejected', () {
+      expect(read('rejected').status, ReviewStatus.rejected);
+      expect(read('suspended').status, ReviewStatus.rejected);
+    });
+
+    test('the family is named from the business', () {
+      expect(read('pending').familyName, 'أسرة أم عبدالله');
     });
   });
 }
