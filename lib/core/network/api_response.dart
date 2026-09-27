@@ -3,15 +3,16 @@ import 'package:dio/dio.dart';
 import '../domain/failure_mapper.dart';
 import '../exceptions/app_exceptions.dart';
 
-/// The `{success, message, data, errors}` envelope every Cloak endpoint
+/// The `{success, message, data, errors}` envelope every Betouti endpoint
 /// returns, plus the `links`/`meta` a paginated one adds alongside them.
 ///
 /// Parsed in one place so no data source re-derives it: the API's own guide is
 /// explicit that `success` must be checked rather than inferred from the
 /// status code, and that field errors live in `errors`, not in `message`.
 ///
-/// Not every response carries every key — `/categories` and `/stores` answer
-/// without `links`/`meta` while `/products` includes both — so everything
+/// Not every response carries every key — `/countries` answers without
+/// `links`/`meta` while `/notifications` includes both — and a dead token is
+/// refused with a bare `401 {"message": "Unauthenticated."}`, so everything
 /// beyond [statusCode] is optional.
 class ApiResponse {
   final int statusCode;
@@ -88,11 +89,20 @@ class ApiResponse {
 
   /// Throws unless the call succeeded, carrying the message, the backend code
   /// and the validation details a form needs.
+  ///
+  /// A 5xx never carries the server's own words: with debugging left on,
+  /// Laravel answers an exception with its class, file and trace in
+  /// `message`, and the guide is explicit that raw server exceptions are not
+  /// for the user — so the generic line goes up instead.
   void ensureOk() {
     if (isOk) return;
 
     throw RequestException(
-      message.isNotEmpty ? message : 'request_failed',
+      statusCode >= 500
+          ? 'server_error'
+          : message.isNotEmpty
+              ? message
+              : 'request_failed',
       statusCode: statusCode,
       errors: errors,
     );

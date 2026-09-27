@@ -11,11 +11,12 @@ import 'package:flutter/foundation.dart';
 const bool useDevicePreview =
     kDebugMode && bool.fromEnvironment('DEVICE_PREVIEW', defaultValue: true);
 
-/// Root of the backend, version prefix and trailing slash included.
+/// Root of the backend, `/api/v1` prefix and trailing slash included — the
+/// Betouti Laravel API (OpenAPI at `/docs/api.json` on the same host).
 ///
-/// The default is the base URL the design's API contract names ("Baytouti
-/// API Spec"); no server answers there yet, and the app runs on fixtures
-/// until one does (`useMockData`).
+/// The version prefix, not `auth/`, ends the base: auth is one route group
+/// beside `vendor/*`, `notifications` and the rest, and [ApiEndPoint] names
+/// each from here.
 ///
 /// The trailing slash is part of the contract with [ApiEndPoint], which
 /// appends unprefixed segments — dropping it collapses `/v1/vendor/orders`
@@ -25,7 +26,7 @@ const bool useDevicePreview =
 ///   flutter run --dart-define=BASE_URL=https://staging.example.com/api/v1/
 const String baseUrl = String.fromEnvironment(
   'BASE_URL',
-  defaultValue: 'https://api.baytouti.com/v1/',
+  defaultValue: 'https://betouti.alqudiry-solutions.com/api/v1/',
 );
 
 /// Network timeouts shared by every Dio request.

@@ -337,6 +337,9 @@ class NetworkServiceImpl implements NetworkService {
       if (accessToken != null) 'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      // The standard header beside the backend family's own, so the server
+      // can answer in the app's language whichever it reads.
+      'Accept-Language': languageCode,
       'x-app-version': await _util.getAppVersion(),
       'x-platform-type': _util.getPlatformType(),
       'x-custom-lang': languageCode,
