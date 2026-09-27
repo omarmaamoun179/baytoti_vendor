@@ -56,8 +56,9 @@ class AuthCubit extends BaseCubit<AuthState> {
     );
   }
 
-  /// `POST /auth/request-otp`. On success the state carries the challenge
-  /// and the sign-in screen moves on to the code.
+  /// `POST /auth/request-otp` — after `POST /auth/vendor/register` for a
+  /// sign-up. On success the state carries the challenge and the sign-in
+  /// screen moves on to the code.
   Future<void> requestOtp(RequestOtpParams params) async {
     if (state.isLoading) return;
     emit(state.copyWith(status: AuthStatus.loading));
@@ -95,9 +96,11 @@ class AuthCubit extends BaseCubit<AuthState> {
 
     emit(state.copyWith(status: AuthStatus.loading));
 
-    final result = await _verifyOtp(
-      VerifyOtpParams(requestId: challenge.requestId, code: code),
-    );
+    final result = await _verifyOtp(VerifyOtpParams(
+      phone: challenge.phone,
+      code: code,
+      mode: challenge.mode,
+    ));
 
     result.fold(
       _emitFailure,

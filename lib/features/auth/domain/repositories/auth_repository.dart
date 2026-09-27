@@ -7,8 +7,10 @@ import '../entities/otp_challenge.dart';
 import '../entities/vendor_user.dart';
 
 abstract class AuthRepository {
+  /// Sends the sign-in code. A sign-up registers the family first.
   Future<Either<Failure, OtpChallenge>> requestOtp(RequestOtpParams params);
 
+  /// Another code to the challenge's number; never registers again.
   Future<Either<Failure, OtpChallenge>> resendOtp(OtpChallenge challenge);
 
   /// Confirms the code and keeps the session on the device.
@@ -18,7 +20,7 @@ abstract class AuthRepository {
   /// Touches only the device.
   Future<Either<Failure, VendorUser?>> restoreSession();
 
-  /// `GET /me`, kept on the device on the way through.
+  /// `GET /auth/me`, kept on the device on the way through.
   Future<Either<Failure, VendorUser>> refreshAccount();
 
   /// Tells the server, then forgets the session whatever it answered.

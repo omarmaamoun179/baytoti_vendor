@@ -118,7 +118,9 @@ void _registerFixtures() {
 
 void _registerAuthFeature() {
   sl.registerLazySingleton<AuthDataSource>(
-    () => AuthMockDataSource(sl<TokenStore>(), sl<MockLocale>()),
+    () => useMockData
+        ? AuthMockDataSource(sl<TokenStore>(), sl<MockLocale>())
+        : AuthRemoteDataSource(sl<NetworkService>()),
   );
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(sl<TokenStore>(), sl<SecureStorageService>()),

@@ -33,6 +33,13 @@ class AppTextField extends StatelessWidget {
 
   final bool enabled;
 
+  /// Hides what is typed, for a password. Suggestions and autocorrect go
+  /// with it — a keyboard must not learn a password.
+  final bool obscureText;
+
+  /// Hints the platform's autofill — `AutofillHints.email`, `.newPassword`.
+  final Iterable<String>? autofillHints;
+
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -54,6 +61,8 @@ class AppTextField extends StatelessWidget {
     this.style,
     this.fillColor,
     this.enabled = true,
+    this.obscureText = false,
+    this.autofillHints,
     this.validator,
     this.onChanged,
     this.onSubmitted,
@@ -75,6 +84,10 @@ class AppTextField extends StatelessWidget {
       maxLength: maxLength,
       keyboardType: multiline ? TextInputType.multiline : keyboardType,
       textInputAction: textInputAction,
+      obscureText: obscureText && !multiline,
+      autocorrect: !obscureText,
+      enableSuggestions: !obscureText,
+      autofillHints: autofillHints,
       inputFormatters: inputFormatters,
       validator: validator,
       onChanged: onChanged,

@@ -3,6 +3,7 @@ import 'package:baytoti_vendor/core/mock/mock_locale.dart';
 import 'package:baytoti_vendor/core/mock/mock_session_token.dart';
 import 'package:baytoti_vendor/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:baytoti_vendor/features/auth/data/datasources/auth_mock_data_source.dart';
+import 'package:baytoti_vendor/features/auth/data/models/auth_models.dart';
 import 'package:baytoti_vendor/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:baytoti_vendor/features/auth/domain/entities/auth_params.dart';
 import 'package:baytoti_vendor/features/auth/domain/usecases/auth_usecases.dart';
@@ -80,7 +81,12 @@ void main() {
     await cubit.requestOtp(const RequestOtpParams(
       phone: '+96566001122',
       mode: AuthMode.signup,
-      fullName: 'مطبخ سارة',
+      signup: SignupDetails(
+        familyName: 'مطبخ سارة',
+        email: 'sara@example.com',
+        password: 'kitchen2026',
+        passwordConfirmation: 'kitchen2026',
+      ),
     ));
     await cubit.verifyOtp(AuthMockDataSource.demoCode);
 
@@ -120,5 +126,45 @@ void main() {
     expect(cubit.state.status, AuthStatus.unauthenticated);
     expect(session.isAuthenticated, isFalse);
     expect(tokens.tokens, isNull);
+  });
+
+  group('the live API\'s answers', () {
+    test('the demo code is read off the end of the message', () {
+      expect(demoOtpFrom('OTP sent successfully. demo otp :561228'), '561228');
+      expect(demoOtpFrom('OTP sent successfully.'), isNull);
+      expect(demoOtpFrom('Note: check your phone'), isNull);
+    });
+
+    test('a sent code takes its length from the demo code', () {
+      final challenge = OtpChallengeModel.fromMessage(
+        'OTP sent successfully. demo otp :5612',
+        phone: '+96551502244',
+        mode: AuthMode.login,
+      );
+      expect(challenge.digits, 4);
+      expect(challenge.demoCode, '5612');
+    });
+
+    test('a session is read under user with the token beside it', () {
+      final payload = AuthPayloadModel.fromJson({
+        'user': {'id': 23, 'name': 'أسرة سارة', 'phone': '96566001122'},
+        'token': '1|abc',
+      });
+      expect(payload.accessToken, '1|abc');
+      expect(payload.user?.id, '23');
+      expect(payload.user?.fullName, 'أسرة سارة');
+    });
+
+    test('a token alone is kept apart from the account', () {
+      final payload = AuthPayloadModel.fromJson({
+        'token': {'access_token': '2|xyz'},
+      });
+      expect(payload.accessToken, '2|xyz');
+      expect(payload.user, isNull);
+    });
+
+    test('the number goes out as digits only', () {
+      expect(requestOtpBody('+965 5150 2244'), {'phone': '96551502244'});
+    });
   });
 }

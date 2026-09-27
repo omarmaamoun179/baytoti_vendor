@@ -17,6 +17,14 @@ abstract class AuthLocalDataSource {
     required VendorUserModel user,
   });
 
+  /// Keeps a token alone — for a code the server confirmed without naming
+  /// the account, which is then read with it. Not a session until
+  /// [cacheUser] follows: [readSession] wants both.
+  Future<Either<Failure, Unit>> cacheToken({
+    required String accessToken,
+    String? refreshToken,
+  });
+
   /// Replaces the kept account without touching the token.
   Future<Either<Failure, Unit>> cacheUser(VendorUserModel user);
 
@@ -52,6 +60,22 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
             TokenPair(accessToken: accessToken, refreshToken: refreshToken),
           );
           await _writeUser(user);
+          return unit;
+        },
+        fallbackMessage: 'session_save_failed',
+      );
+
+  @override
+  Future<Either<Failure, Unit>> cacheToken({
+    required String accessToken,
+    String? refreshToken,
+  }) =>
+      guardedStorage(
+        'AuthLocalDataSource.cacheToken',
+        () async {
+          await _tokenStore.save(
+            TokenPair(accessToken: accessToken, refreshToken: refreshToken),
+          );
           return unit;
         },
         fallbackMessage: 'session_save_failed',

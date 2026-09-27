@@ -15,7 +15,8 @@ import 'auth_mode_tabs.dart';
 import 'terms_check.dart';
 
 /// Sign in and sign up in one form under the segmented control. Sign-up
-/// adds the family's name and the terms; both end in a code sent to the
+/// adds what `POST /auth/vendor/register` requires — the family's name, an
+/// email and a password — and the terms; both end in a code sent to the
 /// phone.
 ///
 /// Holds its own fields and validates them locally; what it hands up is a
@@ -41,6 +42,9 @@ class AuthForm extends StatefulWidget {
 class _AuthFormState extends State<AuthForm> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  final _confirmation = TextEditingController();
   final _phone = TextEditingController();
 
   /// Owned here so the phone field can regroup the number when it is left.
@@ -57,6 +61,9 @@ class _AuthFormState extends State<AuthForm> {
   @override
   void dispose() {
     _name.dispose();
+    _email.dispose();
+    _password.dispose();
+    _confirmation.dispose();
     _phone.dispose();
     _phoneFocus.dispose();
     super.dispose();
@@ -77,7 +84,14 @@ class _AuthFormState extends State<AuthForm> {
       // Validated above, so the field has reported a number.
       phone: _number?.phoneNumber ?? '',
       mode: _mode,
-      fullName: _mode == AuthMode.signup ? _name.text.trim() : null,
+      signup: _mode == AuthMode.signup
+          ? SignupDetails(
+              familyName: _name.text.trim(),
+              email: _email.text.trim(),
+              password: _password.text,
+              passwordConfirmation: _confirmation.text,
+            )
+          : null,
     ));
   }
 
@@ -88,69 +102,120 @@ class _AuthFormState extends State<AuthForm> {
 
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AuthModeTabs(mode: _mode, onChanged: _setMode),
-          SizedBox(height: 20.h),
-          if (signup) ...[
-            AppTextField(
-              label: 'auth_family_name'.tr(),
-              hintText: 'auth_family_name_hint'.tr(),
-              controller: _name,
-              fillColor: p.surf,
-              maxLength: FamilyName.maxLength,
-              textInputAction: TextInputAction.next,
-              validator: (value) => validateTextLength(
-                value,
-                minLength: FamilyName.minLength,
-                maxLength: FamilyName.maxLength,
-                isRequired: true,
+      child: AutofillGroup(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AuthModeTabs(mode: _mode, onChanged: _setMode),
+            SizedBox(height: 20.h),
+            if (signup) ..._buildAccountFields(p),
+            // The design's small caps label rather than the field's own.
+            CapsLabel('auth_phone'.tr()),
+            SizedBox(height: 8.h),
+            PhoneTextFormField(
+              controller: _phone,
+              focusNode: _phoneFocus,
+              hintText: '5150 2244',
+              height: 48.h,
+              radius: 12.r,
+              requiredMessage: 'phone_required'.tr(),
+              invalidMessage: 'invalid_phone'.tr(),
+              lengthMessage: (digits) =>
+                  'phone_length'.tr(args: ['$digits']),
+              textInputAction:
+                  signup ? TextInputAction.next : TextInputAction.done,
+              onInputChanged: (number) => _number = number,
+              onSubmitted: (_) {
+                // Sign-up goes on to the password; sign-in is done here.
+                if (!signup) _submit();
+              },
+            ),
+            if (signup) ...[
+              SizedBox(height: 16.h),
+              ..._buildPasswordFields(p),
+              SizedBox(height: 16.h),
+              TermsCheck(
+                value: _acceptedTerms,
+                onChanged: (value) => setState(() => _acceptedTerms = value),
               ),
+            ],
+            SizedBox(height: 16.h),
+            PrimaryButton(
+              label: _mode.ctaKey.tr(),
+              height: 52.h,
+              labelStyle: AppStrings.text14w800,
+              trailingChevron: true,
+              loading: widget.loading,
+              onPressed: _submit,
             ),
             SizedBox(height: 16.h),
-          ],
-          // The design's small caps label rather than the field's own.
-          CapsLabel('auth_phone'.tr()),
-          SizedBox(height: 8.h),
-          PhoneTextFormField(
-            controller: _phone,
-            focusNode: _phoneFocus,
-            hintText: '5150 2244',
-            height: 48.h,
-            radius: 12.r,
-            requiredMessage: 'phone_required'.tr(),
-            invalidMessage: 'invalid_phone'.tr(),
-            lengthMessage: (digits) =>
-                'phone_length'.tr(args: ['$digits']),
-            textInputAction: TextInputAction.done,
-            onInputChanged: (number) => _number = number,
-            onSubmitted: (_) => _submit(),
-          ),
-          if (signup) ...[
-            SizedBox(height: 16.h),
-            TermsCheck(
-              value: _acceptedTerms,
-              onChanged: (value) => setState(() => _acceptedTerms = value),
+            Text(
+              'auth_hint'.tr(),
+              textAlign: TextAlign.center,
+              style: AppStrings.text11w400Loose.c(p.fg3),
             ),
           ],
-          SizedBox(height: 16.h),
-          PrimaryButton(
-            label: _mode.ctaKey.tr(),
-            height: 52.h,
-            labelStyle: AppStrings.text14w800,
-            trailingChevron: true,
-            loading: widget.loading,
-            onPressed: _submit,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'auth_hint'.tr(),
-            textAlign: TextAlign.center,
-            style: AppStrings.text11w400Loose.c(p.fg3),
-          ),
-        ],
+        ),
       ),
     );
   }
+
+  /// The family's name and the account's email, above the number.
+  List<Widget> _buildAccountFields(AppPalette p) => [
+        AppTextField(
+          label: 'auth_family_name'.tr(),
+          hintText: 'auth_family_name_hint'.tr(),
+          controller: _name,
+          fillColor: p.surf,
+          maxLength: FamilyName.maxLength,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.organizationName],
+          validator: (value) => validateTextLength(
+            value,
+            minLength: FamilyName.minLength,
+            maxLength: FamilyName.maxLength,
+            isRequired: true,
+          ),
+        ),
+        SizedBox(height: 16.h),
+        AppTextField(
+          label: 'auth_email'.tr(),
+          hintText: 'auth_email_hint'.tr(),
+          controller: _email,
+          fillColor: p.surf,
+          maxLength: SignupDetails.emailMaxLength,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
+          validator: (value) => validateEmail(value?.trim()),
+        ),
+        SizedBox(height: 16.h),
+      ];
+
+  /// The password the account is created with, twice. The app signs in by
+  /// code; the password is the API's requirement, for the account itself.
+  List<Widget> _buildPasswordFields(AppPalette p) => [
+        AppTextField(
+          label: 'auth_password'.tr(),
+          hintText: 'auth_password_hint'.tr(),
+          controller: _password,
+          fillColor: p.surf,
+          obscureText: true,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          validator: validatePassword,
+        ),
+        SizedBox(height: 16.h),
+        AppTextField(
+          label: 'auth_password_confirm'.tr(),
+          controller: _confirmation,
+          fillColor: p.surf,
+          obscureText: true,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.newPassword],
+          validator: (value) =>
+              validatePasswordConfirmation(value, _password.text),
+          onSubmitted: (_) => _submit(),
+        ),
+      ];
 }

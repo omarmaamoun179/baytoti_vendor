@@ -3,10 +3,14 @@ import 'package:equatable/equatable.dart';
 import 'auth_params.dart';
 
 /// A code the server has sent and is waiting on — the answer to
-/// `/auth/request-otp` and `/auth/resend-otp`.
+/// `POST /auth/request-otp`, which says nothing but that it went out.
+///
+/// The API names no request: `/auth/verify-otp` checks the code against the
+/// number, so [phone] is what the code screen sends back.
 class OtpChallenge extends Equatable {
-  /// What `/auth/verify-otp` sends back with the code.
-  final String requestId;
+  /// Digits in a live code. Lives on the domain so the boxes on screen and
+  /// what the endpoint accepts cannot drift apart.
+  static const int codeLength = 6;
 
   /// Where the code went, E.164.
   final String phone;
@@ -21,21 +25,21 @@ class OtpChallenge extends Equatable {
   /// How long before another code may be asked for.
   final Duration resendAfter;
 
-  /// The code itself, from fixtures only, so a demo can get past the
-  /// screen. The live API never sends it.
+  /// The code itself, when the server hands it over — the fixtures always,
+  /// and the live API while its SMS is stubbed (the code rides in the
+  /// request's message). Shown under the boxes so a test can get past them.
   final String? demoCode;
 
   const OtpChallenge({
-    required this.requestId,
     required this.phone,
     required this.mode,
-    this.digits = 4,
-    this.expiresIn = const Duration(minutes: 2),
-    this.resendAfter = const Duration(seconds: 30),
+    this.digits = codeLength,
+    this.expiresIn = const Duration(minutes: 3),
+    this.resendAfter = const Duration(seconds: 60),
     this.demoCode,
   });
 
   @override
   List<Object?> get props =>
-      [requestId, phone, mode, digits, expiresIn, resendAfter, demoCode];
+      [phone, mode, digits, expiresIn, resendAfter, demoCode];
 }

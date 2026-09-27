@@ -37,6 +37,9 @@ void main() {
       );
 
   Future<void> tapText(WidgetTester tester, String text) async {
+    // The sign-up form runs past the fold; a tap off screen hits nothing.
+    await tester.ensureVisible(find.text(text).last);
+    await tester.pump();
     await tester.tap(find.text(text).last);
     await wait(tester);
   }
@@ -141,8 +144,13 @@ void main() {
     await wait(tester, 1500);
     await tapText(tester, 'أسرة جديدة');
     await capture('sign_up');
-    await tester.enterText(find.byType(TextFormField).first, 'مطبخ سارة');
-    await tester.enterText(find.byType(TextField).last, '66001122');
+    // Name, email, phone, password, confirmation — in the form's order.
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'مطبخ سارة');
+    await tester.enterText(fields.at(1), 'sara@example.com');
+    await tester.enterText(fields.at(2), '66001122');
+    await tester.enterText(fields.at(3), 'kitchen2026');
+    await tester.enterText(fields.at(4), 'kitchen2026');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await wait(tester, 400);
     await tapText(tester, 'أوافق على شروط الاستخدام وسياسة الخصوصية.');

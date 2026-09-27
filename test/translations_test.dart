@@ -31,6 +31,10 @@ const List<String> errorMessageKeys = [
   'account_refresh_failed',
   'session_save_failed',
   'session_clear_failed',
+  'signup_failed',
+  'signup_code_failed',
+  'phone_taken',
+  'auth_token_missing',
   // Onboarding
   'application_failed',
   // Uploads

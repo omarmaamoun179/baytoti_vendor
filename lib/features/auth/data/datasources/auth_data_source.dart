@@ -2,28 +2,28 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/domain/failure.dart';
 import '../../domain/entities/auth_params.dart';
-import '../../domain/entities/otp_challenge.dart';
 import '../models/auth_models.dart';
 import '../models/vendor_user_model.dart';
 
-/// The auth endpoints of the API contract. [AuthMockDataSource] answers
-/// them from fixtures; a remote source against `ApiEndPoint.requestOtp` and
-/// the rest takes its place when the API exists. The request and verify
-/// pair are public — send them with `skipAuthRefresh: true`, so a 401 reads
-/// as a wrong code rather than an expired session.
+/// The auth endpoints. [AuthRemoteDataSource] calls the live API;
+/// [AuthMockDataSource] answers the same calls from fixtures. The three
+/// public calls go out with `skipAuthRefresh: true`, so a 401 reads as a
+/// refusal rather than an expired session.
 abstract class AuthDataSource {
-  /// `POST /auth/request-otp`.
+  /// `POST /auth/vendor/register` — the account, its business and its first
+  /// store. No token comes back: the code issues it.
+  Future<Either<Failure, Unit>> register(String phone, SignupDetails signup);
+
+  /// `POST /auth/request-otp` — also every resend.
   Future<Either<Failure, OtpChallengeModel>> requestOtp(
-    RequestOtpParams params,
+    String phone,
+    AuthMode mode,
   );
 
-  /// `POST /auth/resend-otp` — a fresh code for the same request.
-  Future<Either<Failure, OtpChallengeModel>> resendOtp(OtpChallenge challenge);
-
-  /// `POST /auth/verify-otp`. A wrong code is `401 otp_invalid`.
+  /// `POST /auth/verify-otp`. A wrong code is a 422 on `otp`.
   Future<Either<Failure, AuthPayloadModel>> verifyOtp(VerifyOtpParams params);
 
-  /// `GET /me`.
+  /// `GET /auth/me`.
   Future<Either<Failure, VendorUserModel>> getMe();
 
   /// `POST /auth/logout`.
