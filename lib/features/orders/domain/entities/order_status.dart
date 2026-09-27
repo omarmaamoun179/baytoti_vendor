@@ -1,9 +1,10 @@
-/// An order's state — the contract's `status`, shared with the customer
-/// app: `placed · accepted · preparing · ready · out_for_delivery ·
-/// delivered · cancelled · rejected`.
+/// An order's state, in the design's words: `placed · accepted · preparing
+/// · ready · out_for_delivery · delivered · cancelled · rejected`.
 ///
-/// The server owns the machine: the details answer carries `next_status`,
-/// and the app never works out a move for itself.
+/// The live API speaks its own six — `pending · confirmed · processing ·
+/// shipped · delivered · cancelled` — which the data layer reads onto these
+/// and sends back exactly; the app never invents a value on the wire. The
+/// server validates every move either way.
 enum OrderStatus {
   placed('placed', step: 0),
   accepted('accepted', step: 1),
@@ -55,6 +56,19 @@ enum OrderTab {
         (tab) => tab.wire == value,
         orElse: () => all,
       );
+
+  /// Whether an order in [status] is listed under this tab: "new" is
+  /// placed, "preparing" anything accepted and not yet handed over, "done"
+  /// closed. A status this build does not know is listed under [all] only.
+  bool holds(OrderStatus status) => switch (this) {
+        all => true,
+        fresh => status == OrderStatus.placed,
+        preparing => status == OrderStatus.accepted ||
+            status == OrderStatus.preparing ||
+            status == OrderStatus.ready ||
+            status == OrderStatus.outForDelivery,
+        done => status.isClosed,
+      };
 }
 
 enum FulfilmentMethod {

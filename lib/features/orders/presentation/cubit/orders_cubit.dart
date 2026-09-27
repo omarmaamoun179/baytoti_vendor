@@ -4,7 +4,7 @@ import '../../domain/usecases/orders_usecases.dart';
 import 'orders_state.dart';
 
 /// The orders tab: one page at a time of the chosen state, with every tab's
-/// count from the same answer.
+/// count from the first page's answer.
 class OrdersCubit extends BaseCubit<OrdersState> {
   final GetOrdersUseCase _getOrders;
 
@@ -71,10 +71,11 @@ class OrdersCubit extends BaseCubit<OrdersState> {
         status: OrdersStatus.loaded,
         errorMessage: failure.message,
       )),
+      // The counts stay those of the first read: the live API sends none,
+      // and works them out from the first page only.
       (list) => emit(state.copyWith(
         status: OrdersStatus.loaded,
         page: state.page.append(list.page),
-        counts: list.counts,
       )),
     );
   }

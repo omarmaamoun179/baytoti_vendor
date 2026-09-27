@@ -39,14 +39,14 @@ class OrdersMockDataSource implements OrdersDataSource {
 
           final all = [..._fixtures.orders]
             ..sort((a, b) => b.placedAt.compareTo(a.placedAt));
-          final matching = all.where((o) => _inTab(o.status, tab)).toList();
+          final matching = all.where((o) => tab.holds(o.status)).toList();
           final lastPage = (matching.length / _perPage).ceil().clamp(1, 1000);
           final rows = matching.skip((page - 1) * _perPage).take(_perPage);
 
           return OrderListModel.fromJson({
             'counts': {
               for (final t in OrderTab.values)
-                t.wire: all.where((o) => _inTab(o.status, t)).length,
+                t.wire: all.where((o) => t.holds(o.status)).length,
             },
             'items': [for (final order in rows) summaryJson(order, ar)],
             'meta': {
@@ -125,18 +125,6 @@ class OrdersMockDataSource implements OrdersDataSource {
         },
         fallbackMessage: 'order_reject_failed',
       );
-
-  /// The contract's `state` filter: "new" is placed, "preparing" is
-  /// anything accepted and not yet handed over, "done" is closed.
-  static bool _inTab(OrderStatus status, OrderTab tab) => switch (tab) {
-        OrderTab.all => true,
-        OrderTab.fresh => status == OrderStatus.placed,
-        OrderTab.preparing => status == OrderStatus.accepted ||
-            status == OrderStatus.preparing ||
-            status == OrderStatus.ready ||
-            status == OrderStatus.outForDelivery,
-        OrderTab.done => status.isClosed,
-      };
 
   OrderRecord _find(String id) => _fixtures.orders.firstWhere(
         (order) => order.id == id,

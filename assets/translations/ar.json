@@ -305,5 +305,9 @@
   "product_available_to_order": "متاح للطلب",
   "product_review_not_sent": "حُفظ المنتج لكن لم يُرسل للمراجعة.",
   "product_saved_not_submitted": "حُفظ كمسودة ولم يُرسل للمراجعة: {}",
-  "product_images_too_large": "الصور أكبر من المسموح بإرساله. جرّب عدداً أقل أو صوراً أصغر."
+  "product_images_too_large": "الصور أكبر من المسموح بإرساله. جرّب عدداً أقل أو صوراً أصغر.",
+  "address_block": "قطعة {}",
+  "address_building": "مبنى {}",
+  "address_floor": "الطابق {}",
+  "address_apartment": "شقة {}"
 }

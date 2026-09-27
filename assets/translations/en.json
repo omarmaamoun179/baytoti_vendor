@@ -298,5 +298,9 @@
   "product_available_to_order": "Available to order",
   "product_review_not_sent": "The product was saved, but it wasn’t sent for review.",
   "product_saved_not_submitted": "Saved as a draft — not sent for review: {}",
-  "product_images_too_large": "The photos are too large to send. Try fewer or smaller ones."
+  "product_images_too_large": "The photos are too large to send. Try fewer or smaller ones.",
+  "address_block": "Block {}",
+  "address_building": "Building {}",
+  "address_floor": "Floor {}",
+  "address_apartment": "Apt {}"
 }

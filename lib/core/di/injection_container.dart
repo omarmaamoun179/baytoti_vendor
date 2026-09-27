@@ -188,7 +188,9 @@ void _registerUploadsFeature() {
 
 void _registerOrdersFeature() {
   sl.registerLazySingleton<OrdersDataSource>(
-    () => OrdersMockDataSource(sl<OrderFixtures>(), sl<MockLocale>()),
+    () => useMockData
+        ? OrdersMockDataSource(sl<OrderFixtures>(), sl<MockLocale>())
+        : OrdersRemoteDataSource(sl<NetworkService>()),
   );
   sl.registerLazySingleton<OrdersRepository>(
     () => OrdersRepositoryImpl(sl<OrdersDataSource>()),

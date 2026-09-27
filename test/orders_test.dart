@@ -3,6 +3,7 @@ import 'package:baytoti_vendor/core/mock/mock_locale.dart';
 import 'package:baytoti_vendor/features/dashboard/data/datasources/dashboard_mock_data_source.dart';
 import 'package:baytoti_vendor/features/orders/data/datasources/order_fixtures.dart';
 import 'package:baytoti_vendor/features/orders/data/datasources/orders_mock_data_source.dart';
+import 'package:baytoti_vendor/features/orders/data/models/order_models.dart';
 import 'package:baytoti_vendor/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:baytoti_vendor/features/orders/domain/entities/order_status.dart';
 import 'package:baytoti_vendor/features/orders/domain/usecases/orders_usecases.dart';
@@ -196,6 +197,83 @@ void main() {
 
       expect(cubit.state.status, OrderDetailsStatus.error);
       expect(cubit.state.errorMessage, 'order_not_found');
+    });
+  });
+
+  group('the live API\'s orders', () {
+    final resource = {
+      'id': 12,
+      'order_number': 'ORD-2026-1258',
+      'status': 'pending',
+      'financials': {'subtotal': '8.500', 'total': '9.250'},
+      'address': {
+        'recipient_name': 'نورة العنزي',
+        'phone': '96551502244',
+        'area': 'حولي',
+        'street': 'شارع تونس',
+      },
+      'items_count': 2,
+      'items': [
+        {'product_id': 3, 'product_name': 'كيك', 'quantity': 2, 'total': '8.500'},
+      ],
+      'created_at': '2026-09-21T14:10:00.000000Z',
+    };
+
+    test('a row reads its reference, customer and total', () {
+      final row = VendorOrderSummaryModel.fromApi(resource);
+
+      expect(row.id, '12');
+      expect(row.reference, 'ORD-2026-1258');
+      expect(row.status, OrderStatus.placed);
+      expect(row.customerName, 'نورة العنزي');
+      expect(row.totalFils, 9250);
+      expect(row.itemCount, 2);
+    });
+
+    test('an order offers the next step, and only a new one is refused', () {
+      final order = VendorOrderModel.fromApi(resource);
+
+      expect(order.nextStatus, OrderStatus.accepted);
+      expect(order.canReject, isTrue);
+      expect(order.customer.phoneMasked, '•••• 2244');
+      expect(order.lines.single.lineTotalFils, 8500);
+
+      final shipped = VendorOrderModel.fromApi({...resource, 'status': 'shipped'});
+      expect(shipped.status, OrderStatus.outForDelivery);
+      expect(shipped.nextStatus, OrderStatus.delivered);
+      expect(shipped.canReject, isFalse);
+
+      final delivered =
+          VendorOrderModel.fromApi({...resource, 'status': 'delivered'});
+      expect(delivered.nextStatus, isNull);
+    });
+
+    test('every status goes back as the API spells it', () {
+      for (final wire in [
+        'pending',
+        'confirmed',
+        'processing',
+        'shipped',
+        'delivered',
+        'cancelled',
+      ]) {
+        expect(orderStatusToApi(orderStatusFromApi(wire)), wire);
+      }
+      expect(orderStatusToApi(OrderStatus.rejected), 'cancelled');
+      expect(orderStatusFromApi('refunded'), OrderStatus.unknown);
+    });
+
+    test('the counts come from the newest page and add up', () {
+      final rows = [
+        for (final status in ['pending', 'pending', 'processing', 'delivered'])
+          VendorOrderSummaryModel.fromApi({...resource, 'status': status}),
+      ];
+      final counts = OrderListModel.countsFromApi(rows, total: 30);
+
+      expect(counts.fresh, 2);
+      expect(counts.preparing, 1);
+      expect(counts.done, 27);
+      expect(counts.all, 30);
     });
   });
 }
