@@ -295,7 +295,9 @@ void _registerStoreFeature() {
 
 void _registerNotificationsFeature() {
   sl.registerLazySingleton<NotificationsDataSource>(
-    () => NotificationsMockDataSource(sl<MockLocale>()),
+    () => useMockData
+        ? NotificationsMockDataSource(sl<MockLocale>())
+        : NotificationsRemoteDataSource(sl<NetworkService>()),
   );
   sl.registerLazySingleton<NotificationsRepository>(
     () => NotificationsRepositoryImpl(sl<NotificationsDataSource>()),

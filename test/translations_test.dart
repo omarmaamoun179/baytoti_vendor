@@ -82,6 +82,7 @@ const List<String> errorMessageKeys = [
   'store_cover_failed',
   // Notifications
   'notifications_failed',
+  'notifications_mark_read_failed',
 ];
 
 Map<String, dynamic> _load(String locale) =>

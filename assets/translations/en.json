@@ -303,5 +303,6 @@
   "address_building": "Building {}",
   "address_floor": "Floor {}",
   "address_apartment": "Apt {}",
-  "dashboard_change_vs_previous": "{} vs the previous period"
+  "dashboard_change_vs_previous": "{} vs the previous period",
+  "notifications_mark_read_failed": "Couldn’t mark the notifications read."
 }

@@ -310,5 +310,6 @@
   "address_building": "مبنى {}",
   "address_floor": "الطابق {}",
   "address_apartment": "شقة {}",
-  "dashboard_change_vs_previous": "{} مقارنة بالفترة السابقة"
+  "dashboard_change_vs_previous": "{} مقارنة بالفترة السابقة",
+  "notifications_mark_read_failed": "تعذّر تعليم الإشعارات كمقروءة."
 }

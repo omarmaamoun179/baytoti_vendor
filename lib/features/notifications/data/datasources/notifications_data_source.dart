@@ -3,11 +3,12 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/domain/failure.dart';
 import '../models/notification_models.dart';
 
-/// The vendor notifications endpoints. Only fixtures implement it today.
+/// The family's notifications. [NotificationsRemoteDataSource] calls the
+/// live API; [NotificationsMockDataSource] answers from fixtures.
 abstract class NotificationsDataSource {
-  /// `GET /vendor/notifications?page=`.
+  /// One page, with how many are unread.
   Future<Either<Failure, NotificationFeedModel>> getNotifications(int page);
 
-  /// `POST /vendor/notifications/read` — see `ApiEndPoint`.
+  /// Marks every notification read.
   Future<Either<Failure, Unit>> markAllRead();
 }

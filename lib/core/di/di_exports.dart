@@ -31,6 +31,7 @@ import '../../features/dashboard/domain/usecases/get_dashboard_usecase.dart';
 import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import '../../features/notifications/data/datasources/notifications_data_source.dart';
 import '../../features/notifications/data/datasources/notifications_mock_data_source.dart';
+import '../../features/notifications/data/datasources/notifications_remote_data_source.dart';
 import '../../features/notifications/data/repositories/notifications_repository_impl.dart';
 import '../../features/notifications/domain/repositories/notifications_repository.dart';
 import '../../features/notifications/domain/usecases/notifications_usecases.dart';
