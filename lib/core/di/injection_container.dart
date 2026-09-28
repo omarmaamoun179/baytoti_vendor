@@ -52,6 +52,7 @@ Future<void> initDependencies() async {
   _registerDashboardFeature();
   _registerOffersFeature();
   _registerStoreFeature();
+  _registerLocationFeature();
   _registerNotificationsFeature();
 }
 
@@ -301,6 +302,31 @@ void _registerStoreFeature() {
   sl.registerLazySingleton(() => UpdateStoreUseCase(sl<StoreRepository>()));
 
   sl.registerFactory(() => StoreCubit(sl(), sl(), sl()));
+}
+
+void _registerLocationFeature() {
+  sl.registerLazySingleton<LocationDataSource>(
+    () => useMockData
+        ? LocationMockDataSource(sl<TokenStore>(), sl<MockLocale>())
+        : LocationRemoteDataSource(sl<NetworkService>()),
+  );
+  sl.registerLazySingleton<LocationRepository>(
+    () => LocationRepositoryImpl(sl<LocationDataSource>()),
+  );
+
+  sl.registerLazySingleton(() => GetCountriesUseCase(sl<LocationRepository>()));
+  sl.registerLazySingleton(
+    () => GetGovernoratesUseCase(sl<LocationRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetLocationContextUseCase(sl<LocationRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => SetManualLocationUseCase(sl<LocationRepository>()),
+  );
+
+  sl.registerFactory(() => LocationContextCubit(sl()));
+  sl.registerFactory(() => LocationSetupCubit(sl(), sl(), sl(), sl()));
 }
 
 void _registerNotificationsFeature() {

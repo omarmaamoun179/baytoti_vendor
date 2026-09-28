@@ -126,6 +126,10 @@ void main() {
     await tester.drag(find.byType(ListView).first, const Offset(0, -700));
     await wait(tester, 600);
     await capture('store_scrolled');
+    await tapText(tester, 'الموقع');
+    await wait(tester, 1000);
+    await capture('location');
+    await back(tester);
 
     // ── Notifications, from the dashboard's bell ─────────────────────
     await tester.tap(navTab('الرئيسية'));

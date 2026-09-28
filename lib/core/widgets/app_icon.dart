@@ -129,6 +129,15 @@ class AppIcons {
     1.8,
   );
 
+  /// A map pin, for the account's location. Not one of the design's own
+  /// glyphs; drawn at the strokes of [globe] beside it.
+  static final String pin = _stroke(
+    '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/>'
+    '<circle cx="12" cy="9.5" r="2.5"/>',
+    1.8,
+    round: true,
+  );
+
   static final String logout = _stroke(
     '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>'
     '<path d="M16 17l5-5-5-5M21 12H9"/>',

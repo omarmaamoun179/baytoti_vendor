@@ -89,8 +89,9 @@ Every screen of the design exists: onboarding (V01), dashboard (V02), orders
 (V07), store profile (V08) and notifications (V09). Not in the vendor design,
 and built in its style: the splash, sign-in / sign-up and the code screen
 (from the customer design's screens 02–03), editing a product (the V06 form
-over `/products/:id`), the reject sheet, and an account card (language,
-sign-out) at the foot of the store tab.
+over `/products/:id`), the reject sheet, an account card (language,
+location, sign-out) at the foot of the store tab, and the location page it
+opens.
 
 - **Two sources per feature.** Each feature has a `*DataSource` interface, a
   `*RemoteDataSource` for the live API and a `*MockDataSource` for fixtures.
@@ -155,6 +156,19 @@ sign-out) at the foot of the store tab.
   only as stored paths and has no upload, so "Change cover" is not offered
   live (`StoreProfile.coverEditable`); it keeps no documents, so the
   verification card is hidden there.
+- **Location** (`features/location`) is the account's own, apart from the
+  store's area: a row in the store tab's account card shows it
+  (`LocationContextCubit`, per screen), and `/location` changes it —
+  `GET countries` and `countries/{id}/governorates` (public, cached) as
+  chips, saved with `POST location/context {mode: manual, country_id,
+  governorate_id}`; the page pops with the saved `LocationContext`.
+  **The answer's shape is a guess** (the spec types it "object"): the
+  `selected_*` pair, then `resolved_*`, then plain `country_id`, maybe under
+  `context`; `data: null` or a 404 is no location. Names missing from it are
+  filled from the lists, and a save that answers without the location reads
+  as the one sent. `auto` (coordinates) is not offered: the app has no
+  device-location package. Fixtures offer Kuwait and Egypt, in the API's
+  shape — there is no design contract for location.
 - **Products** live under the store: `GET/POST vendor/stores/{store}/products`,
   `GET/PUT …/{product}`, `POST …/{product}/submit-review`; categories are
   `GET categories/active`, flattened. State is moderation first
@@ -223,8 +237,8 @@ sign-out) at the foot of the store tab.
 - **Not done**: the splash is Flutter only (no native splash or launcher
   icons generated); identifiers are still the template's
   `com.example.baytoti_vendor`; Android release is signed with the debug key;
-  nothing refreshes a token (Sanctum tokens do not refresh); location context
-  (`location/context`) is the customer app's concern and not called here.
+  nothing refreshes a token (Sanctum tokens do not refresh); the location is
+  set by hand only (`mode: auto` would need a device-location package).
 
 ## Architecture
 
@@ -457,8 +471,8 @@ and `search=` on the wire searches for the empty string.
 
 One `GoRouter` in `core/routing/app_router.dart`, paths in `routes.dart`. The
 five tabs (home, orders, products, offers, store) are `StatefulShellRoute`
-branches; order details, the product form and notifications are pushed on the
-root navigator over the tab bar. A confirmed code leaves the form through
+branches; order details, the product form, notifications and the location
+page are pushed on the root navigator over the tab bar. A confirmed code leaves the form through
 the guard: the session flips and `redirectForMember` sends `/login` and
 `/otp` to the dashboard. The product form
 is registered as `/products/new` before `/products/:id`, which would read

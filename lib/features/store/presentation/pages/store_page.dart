@@ -13,6 +13,7 @@ import '../../../../core/widgets/load_state_views.dart';
 import '../../../../core/widgets/locale_change_listener.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/screen_header.dart';
+import '../../../location/presentation/cubit/location_context_cubit.dart';
 import '../../domain/entities/store_profile.dart';
 import '../cubit/store_cubit.dart';
 import '../cubit/store_state.dart';
@@ -22,14 +23,18 @@ import '../widgets/store_details_card.dart';
 import '../widgets/verification_card.dart';
 
 /// V08 — the store profile: the cover, name, story and city the customer
-/// sees on the family page, and where verification stands.
+/// sees on the family page, and where verification stands. At its foot, the
+/// account: language, location and signing out.
 class StorePage extends StatelessWidget {
   const StorePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<StoreCubit>()..load(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<StoreCubit>()..load()),
+        BlocProvider(create: (_) => sl<LocationContextCubit>()..load()),
+      ],
       child: const _StoreView(),
     );
   }
@@ -60,6 +65,13 @@ class _StoreViewState extends State<_StoreView> {
     if (!mounted || paths.isEmpty) return;
     _edited();
     context.read<StoreCubit>().changeCover(paths.first);
+  }
+
+  /// Both read again in the new language: the store's words and the
+  /// location's names come from the server in it.
+  void _reload() {
+    context.read<StoreCubit>().load();
+    context.read<LocationContextCubit>().load();
   }
 
   void _save() {
@@ -93,7 +105,7 @@ class _StoreViewState extends State<_StoreView> {
   @override
   Widget build(BuildContext context) {
     return LocaleChangeListener(
-      onChanged: context.read<StoreCubit>().load,
+      onChanged: _reload,
       child: BlocConsumer<StoreCubit, StoreState>(
         listenWhen: (previous, current) =>
             previous.saveStatus != current.saveStatus ||

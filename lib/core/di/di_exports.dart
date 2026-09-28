@@ -29,6 +29,14 @@ import '../../features/dashboard/data/repositories/dashboard_repository_impl.dar
 import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../features/dashboard/domain/usecases/get_dashboard_usecase.dart';
 import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import '../../features/location/data/datasources/location_data_source.dart';
+import '../../features/location/data/datasources/location_mock_data_source.dart';
+import '../../features/location/data/datasources/location_remote_data_source.dart';
+import '../../features/location/data/repositories/location_repository_impl.dart';
+import '../../features/location/domain/repositories/location_repository.dart';
+import '../../features/location/domain/usecases/location_usecases.dart';
+import '../../features/location/presentation/cubit/location_context_cubit.dart';
+import '../../features/location/presentation/cubit/location_setup_cubit.dart';
 import '../../features/notifications/data/datasources/notifications_data_source.dart';
 import '../../features/notifications/data/datasources/notifications_mock_data_source.dart';
 import '../../features/notifications/data/datasources/notifications_remote_data_source.dart';

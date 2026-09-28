@@ -5,6 +5,7 @@ import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/auth/presentation/pages/otp_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/location/presentation/pages/location_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/offers/presentation/pages/offers_page.dart';
 import '../../features/orders/domain/entities/order_status.dart';
@@ -34,6 +35,7 @@ const Set<String> protectedRoutes = {
   AppRoutes.offers,
   AppRoutes.store,
   AppRoutes.notifications,
+  AppRoutes.location,
 };
 
 /// Routes open to everyone.
@@ -238,6 +240,11 @@ final GoRouter appRouter = GoRouter(
       AppRoutes.notifications,
       'notifications',
       (state) => const NotificationsPage(),
+    ),
+    _fullScreen(
+      AppRoutes.location,
+      'location',
+      (state) => const LocationPage(),
     ),
   ],
 );

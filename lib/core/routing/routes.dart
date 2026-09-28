@@ -37,6 +37,9 @@ class AppRoutes {
 
   static const String notifications = '/notifications';
 
+  /// The account's country and governorate, opened from the store tab.
+  static const String location = '/location';
+
   // ── Query keys ─────────────────────────────────────────────────────
   /// `/orders?tab=new` — the dashboard's "see all" and its new-orders
   /// figure open a filtered tab.

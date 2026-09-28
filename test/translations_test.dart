@@ -80,6 +80,10 @@ const List<String> errorMessageKeys = [
   'store_missing',
   'store_cover_uploading',
   'store_cover_failed',
+  // Location
+  'location_failed',
+  'location_save_failed',
+  'location_governorate_mismatch',
   // Notifications
   'notifications_failed',
   'notifications_mark_read_failed',

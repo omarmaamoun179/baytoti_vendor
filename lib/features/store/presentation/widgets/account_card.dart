@@ -7,11 +7,12 @@ import '../../../../core/utils/app_strings.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/widgets/caps_label.dart';
+import '../../../location/presentation/widgets/location_row.dart';
 
-/// The app's language and signing out. Not in the design, which switches
-/// language outside the phone and never signs out; they sit at the foot of
-/// the store tab, the family's own corner of the app. The language control
-/// is the design canvas's عربي | ENGLISH toggle.
+/// The app's language, the account's location and signing out. Not in the
+/// design, which switches language outside the phone and never signs out;
+/// they sit at the foot of the store tab, the family's own corner of the
+/// app. The language control is the design canvas's عربي | ENGLISH toggle.
 class AccountCard extends StatelessWidget {
   final VoidCallback onSignOut;
 
@@ -40,10 +41,9 @@ class AccountCard extends StatelessWidget {
               _buildLanguageToggle(context),
             ],
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.h),
-            child: Divider(color: p.line, height: 1),
-          ),
+          _buildDivider(context),
+          const LocationRow(),
+          _buildDivider(context),
           InkWell(
             onTap: onSignOut,
             borderRadius: BorderRadius.circular(8.r),
@@ -65,6 +65,11 @@ class AccountCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildDivider(BuildContext context) => Padding(
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        child: Divider(color: context.palette.line, height: 1),
+      );
 
   Widget _buildLanguageToggle(BuildContext context) {
     final p = context.palette;

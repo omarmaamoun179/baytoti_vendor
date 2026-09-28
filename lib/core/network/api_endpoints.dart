@@ -85,6 +85,12 @@ class ApiEndPoint {
   static String governorates(String country) =>
       _url('countries/$country/governorates');
 
+  // ── Location (authenticated) ───────────────────────────────────────
+  /// The account's own location. `GET` reads it; `POST` sets it —
+  /// `{mode: manual, country_id, governorate_id}`, or `{mode: auto,
+  /// latitude, longitude}` for the server to resolve.
+  static String get locationContext => _url('location/context');
+
   // ── Notifications ──────────────────────────────────────────────────
   /// `NotificationResource` rows, paged by `meta`. Shared by both apps: the
   /// signed-in account's own.
