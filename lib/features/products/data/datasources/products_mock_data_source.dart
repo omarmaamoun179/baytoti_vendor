@@ -13,11 +13,12 @@ import 'products_data_source.dart';
 
 /// [ProductFixtures] behind the catalogue calls.
 ///
-/// It enforces what the server does: a product is not purchasable before
-/// review, so the switch refuses to publish a draft or a product in review
-/// (`product_pending_review`), and one marked unavailable stays hidden. A
-/// save keeps the product a draft and [submitForReview] sends it on; nothing
-/// here approves it.
+/// It enforces what the server does: the switch is the product's own
+/// `status`, kept whatever its review — switched on in review, a product
+/// goes on sale when approved, and the live server accepts that (seen on
+/// 2026-09-28). A rejected product and one marked unavailable are not
+/// switched on. A save keeps the product a draft and [submitForReview]
+/// sends it on; nothing here approves it.
 class ProductsMockDataSource implements ProductsDataSource {
   static const int _perPage = 20;
 
@@ -180,9 +181,6 @@ class ProductsMockDataSource implements ProductsDataSource {
 
           if (published) {
             final refusal = switch (product.state) {
-              ProductState.draft ||
-              ProductState.pendingReview =>
-                'product_pending_review',
               ProductState.rejected => 'product_rejected_cannot_publish',
               _ when !product.isAvailable => 'product_out_of_stock_publish',
               _ => null,
@@ -190,9 +188,15 @@ class ProductsMockDataSource implements ProductsDataSource {
             if (refusal != null) {
               throw RequestException(refusal, statusCode: 422);
             }
-            product.state = ProductState.published;
-          } else if (product.state == ProductState.published) {
-            product.state = ProductState.hidden;
+          }
+
+          product.switchedOn = published;
+          // An approved product shows or hides at once; one still in review
+          // keeps its state and waits for the approval.
+          if (product.state == ProductState.published ||
+              product.state == ProductState.hidden) {
+            product.state =
+                published ? ProductState.published : ProductState.hidden;
           }
 
           return VendorProductSummaryModel.fromJson(
@@ -240,6 +244,7 @@ class ProductsMockDataSource implements ProductsDataSource {
         'price_fils': product.priceFils,
         'is_available': product.isAvailable,
         'state': product.state.wire,
+        'status': product.switchedOn,
         'images': [
           for (final photo in product.photos) {'url': photo.url},
         ],

@@ -14,6 +14,11 @@ class VendorProductSummary extends Equatable {
 
   final ProductState state;
 
+  /// The family's own switch — the API's `status` — and what the list's
+  /// switch shows. Independent of review: switched on while in review, a
+  /// product goes on sale once it is approved.
+  final bool isSwitchedOn;
+
   /// The cover photo, when there is one.
   final String? imageUrl;
 
@@ -23,17 +28,18 @@ class VendorProductSummary extends Equatable {
     required this.priceFils,
     required this.isAvailable,
     required this.state,
+    required this.isSwitchedOn,
     this.imageUrl,
   });
 
   bool get isOutOfStock => !isAvailable;
 
-  /// On sale — what the list's switch shows.
+  /// On sale: approved, switched on and available.
   bool get isLive => state == ProductState.published && isAvailable;
 
   @override
   List<Object?> get props =>
-      [id, name, priceFils, isAvailable, state, imageUrl];
+      [id, name, priceFils, isAvailable, state, isSwitchedOn, imageUrl];
 }
 
 /// A category chip — on the live API a food category of

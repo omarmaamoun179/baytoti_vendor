@@ -14,6 +14,11 @@ class ProductRecord {
   List<ProductPhoto> photos;
   ProductState state;
 
+  /// The family's switch — the API's `status` — kept apart from [state]'s
+  /// review, as the server keeps it. On for a published product unless
+  /// said otherwise.
+  bool switchedOn;
+
   ProductRecord({
     required this.id,
     required this.name,
@@ -21,10 +26,11 @@ class ProductRecord {
     required this.priceFils,
     this.isAvailable = true,
     required this.state,
+    bool? switchedOn,
     this.preparationTime = PreparationTime.oneDay,
     this.description = const Localized('', ''),
     this.photos = const [],
-  });
+  }) : switchedOn = switchedOn ?? state == ProductState.published;
 }
 
 /// The fixture catalogue — the design's five products and five more, one

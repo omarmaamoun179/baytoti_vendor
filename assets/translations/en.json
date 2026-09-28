@@ -184,7 +184,6 @@
   "product_state_published": "published",
   "product_state_rejected": "rejected",
   "product_state_hidden": "hidden",
-  "product_pending_review": "A product can’t go live before it passes review.",
   "product_rejected_cannot_publish": "Review turned this product down. Edit it and send it again.",
   "product_out_of_stock_publish": "Mark it available before publishing.",
   "product_visibility_failed": "Couldn’t change whether the product shows.",

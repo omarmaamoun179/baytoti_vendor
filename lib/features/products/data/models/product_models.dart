@@ -100,16 +100,23 @@ class VendorProductSummaryModel extends VendorProductSummary {
     required super.priceFils,
     required super.isAvailable,
     required super.state,
+    required super.isSwitchedOn,
     super.imageUrl,
   });
 
+  /// The contract has no switch apart from `state`; the fixtures send
+  /// `status` beside it, and without one a published product is on.
   factory VendorProductSummaryModel.fromJson(Map<String, dynamic> json) {
+    final state = ProductState.fromWire(asString(json['state']));
+
     return VendorProductSummaryModel(
       id: requireString(json['id'], 'id'),
       name: asString(json['name']) ?? '',
       priceFils: asInt(json['price_fils']) ?? 0,
       isAvailable: asBool(json['is_available']) ?? true,
-      state: ProductState.fromWire(asString(json['state'])),
+      state: state,
+      isSwitchedOn:
+          asBool(json['status']) ?? state == ProductState.published,
       imageUrl: _coverOf(json['images']),
     );
   }
@@ -124,6 +131,7 @@ class VendorProductSummaryModel extends VendorProductSummary {
       priceFils: _priceOf(json),
       isAvailable: asBool(json['is_available']) ?? true,
       state: _stateOf(json),
+      isSwitchedOn: asBool(json['status']) ?? false,
       imageUrl: photos.firstOrNull?.url ??
           (thumbnail is Map
               ? asString(thumbnail['image'])

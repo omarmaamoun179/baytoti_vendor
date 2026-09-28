@@ -188,7 +188,6 @@
   "product_state_published": "منشور",
   "product_state_rejected": "مرفوض",
   "product_state_hidden": "مخفي",
-  "product_pending_review": "لا يُنشر المنتج قبل اجتياز المراجعة.",
   "product_rejected_cannot_publish": "رُفض المنتج في المراجعة. عدّله وأرسله من جديد.",
   "product_out_of_stock_publish": "اجعله متاحاً للطلب قبل نشره.",
   "product_visibility_failed": "تعذّر تغيير ظهور المنتج.",

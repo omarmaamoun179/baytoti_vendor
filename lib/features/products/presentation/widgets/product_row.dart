@@ -22,8 +22,9 @@ extension ProductStateLabel on ProductState {
 }
 
 /// A product in the catalogue: its photo, name, availability and state,
-/// price — and publishing as one switch. Unavailable is said in amber,
-/// since nobody can order it.
+/// price — and the family's switch, which shows the product's own `status`
+/// while the state line says where its review stands. Unavailable is said
+/// in amber, since nobody can order it.
 class ProductRow extends StatelessWidget {
   final VendorProductSummary product;
   final bool toggling;
@@ -84,7 +85,7 @@ class ProductRow extends StatelessWidget {
           ),
           SizedBox(width: 12.w),
           AppSwitch(
-            value: product.isLive,
+            value: product.isSwitchedOn,
             busy: toggling,
             onChanged: (_) => onToggle(),
           ),

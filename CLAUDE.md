@@ -178,7 +178,12 @@ opens.
   the domain, the form (a switch beside the price), the list and the fixtures
   speak of availability. Preparation time is `preparation_time_minutes`
   (the three chips carry `PreparationTime.minutes`). Money is `base_price` in
-  dinars, read into fils. The publish switch is `PUT {status}`. A save
+  dinars, read into fils. The list's switch is the product's own `status`
+  (`VendorProductSummary.isSwitchedOn`), sent as `PUT {status}` and shown
+  as the server keeps it, whatever the review: on 2026-09-28 the server
+  took `status: true` on a `pending_review` product and answered with it.
+  The review is the row's label; `isLive` (approved + on + available) is
+  whether it is on sale. A save
   never sends to review itself: the repository calls `submitForReview` once
   it lands, and a refused review is carried on the result
   (`ProductSaveResult.reviewRefusal`), never reported as a failed save — a
@@ -212,7 +217,15 @@ opens.
   card is left out. Stats give new orders, today's orders and products
   switched off ("Not available", `out_of_stock_products`). When
   `recent_orders` is empty or today's count is missing, the first page of
-  `vendor/orders` fills in.
+  `vendor/orders` fills in. **Checked live on 2026-09-28**: the answer is
+  the shape `VendorDashboardModel.fromApi` documents; `period` is ignored
+  (no period, `today` and `week` answer alike, so the week card never
+  shows); there is no `orders_today`, so the orders page is always read;
+  `alerts` (e.g. `out_of_stock`) and `vendor.status` (`pending` for a
+  family not yet approved, which is still served) are sent but not read.
+  An account without the vendor role (account #25 that day, which
+  `auth/me` answers for) is refused every `vendor/*` call with
+  `403 "User does not have the right roles."` (Spatie), shown as sent.
 - **Offers**: fixtures only — the API has no offers endpoint. Store-wide
   percentage discounts (5–70 % in 5s, three at once) with an end date.
 - **Notifications**: `GET notifications`, `PATCH notifications/read-all` —

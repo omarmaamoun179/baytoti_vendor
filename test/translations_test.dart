@@ -58,7 +58,6 @@ const List<String> errorMessageKeys = [
   'categories_failed',
   'product_save_failed',
   'product_visibility_failed',
-  'product_pending_review',
   'product_rejected_cannot_publish',
   'product_out_of_stock_publish',
   'product_photos_uploading',

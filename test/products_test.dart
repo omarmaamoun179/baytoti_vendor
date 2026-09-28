@@ -48,16 +48,23 @@ void main() {
       result.fold((f) => f.message, (_) => null);
 
   group('the catalogue fixtures', () {
-    test('nothing goes on sale before review', () async {
+    test('a product in review switches on and waits for approval', () async {
+      final row = (await source.setVisibility('prd_9', published: true))
+          .getOrElse(() => throw 'failed');
+
+      expect(row.isSwitchedOn, isTrue);
+      expect(row.state, ProductState.pendingReview);
+      expect(row.isLive, isFalse, reason: 'not on sale before review');
+
+      final off = (await source.setVisibility('prd_9', published: false))
+          .getOrElse(() => throw 'failed');
+      expect(off.isSwitchedOn, isFalse, reason: 'and switches off again');
+    });
+
+    test('a rejected product is not switched on', () async {
       expect(
-        refusal(await source.setVisibility('prd_5', published: true)),
-        'product_pending_review',
-        reason: 'a draft',
-      );
-      expect(
-        refusal(await source.setVisibility('prd_9', published: true)),
-        'product_pending_review',
-        reason: 'in review',
+        refusal(await source.setVisibility('prd_10', published: true)),
+        'product_rejected_cannot_publish',
       );
     });
 
@@ -72,10 +79,12 @@ void main() {
       final hidden = (await source.setVisibility('prd_1', published: false))
           .getOrElse(() => throw 'failed');
       expect(hidden.state, ProductState.hidden);
+      expect(hidden.isSwitchedOn, isFalse);
       expect(hidden.isLive, isFalse);
 
       final shown = (await source.setVisibility('prd_1', published: true))
           .getOrElse(() => throw 'failed');
+      expect(shown.isSwitchedOn, isTrue);
       expect(shown.isLive, isTrue);
     });
 
@@ -99,13 +108,39 @@ void main() {
       addTearDown(cubit.close);
       await cubit.load();
 
-      final draft = cubit.state.products.firstWhere((p) => p.id == 'prd_5');
-      await cubit.toggleVisibility(draft);
+      final empty = cubit.state.products.firstWhere((p) => p.id == 'prd_3');
+      await cubit.toggleVisibility(empty);
 
-      final after = cubit.state.products.firstWhere((p) => p.id == 'prd_5');
-      expect(after.state, ProductState.draft);
-      expect(cubit.state.errorMessage, 'product_pending_review');
+      final after = cubit.state.products.firstWhere((p) => p.id == 'prd_3');
+      expect(after.isSwitchedOn, isFalse);
+      expect(after.state, ProductState.hidden);
+      expect(cubit.state.errorMessage, 'product_out_of_stock_publish');
       expect(cubit.state.togglingIds, isEmpty);
+    });
+
+    test('the switch follows the product\'s own status in review', () async {
+      final cubit = ProductsCubit(
+        GetProductsUseCase(repository),
+        SetProductVisibilityUseCase(repository),
+      );
+      addTearDown(cubit.close);
+      await cubit.load();
+
+      ProductState stateOf() =>
+          cubit.state.products.firstWhere((p) => p.id == 'prd_9').state;
+      bool switchOf() =>
+          cubit.state.products.firstWhere((p) => p.id == 'prd_9').isSwitchedOn;
+
+      await cubit.toggleVisibility(
+        cubit.state.products.firstWhere((p) => p.id == 'prd_9'),
+      );
+      expect(switchOf(), isTrue);
+      expect(stateOf(), ProductState.pendingReview);
+
+      await cubit.toggleVisibility(
+        cubit.state.products.firstWhere((p) => p.id == 'prd_9'),
+      );
+      expect(switchOf(), isFalse, reason: 'a second tap switches it off');
     });
   });
 
@@ -211,6 +246,24 @@ void main() {
       expect(row.state, ProductState.published);
       expect(row.isLive, isFalse, reason: 'published but not available');
       expect(row.imageUrl, 'https://x/2.jpg');
+    });
+
+    test('the switch is the product\'s status, even in review', () {
+      // The answer to `PUT …/products/37 {status: true}` on 2026-09-28.
+      final row = VendorProductSummaryModel.fromApi({
+        'id': 37,
+        'name': 'كيك',
+        'base_price': '5.000',
+        'status': true,
+        'approval_status': 'pending_review',
+        'approval_status_data': {'key': 'pending_review'},
+        'is_available': true,
+        'colors': [],
+      });
+
+      expect(row.isSwitchedOn, isTrue);
+      expect(row.state, ProductState.pendingReview);
+      expect(row.isLive, isFalse);
     });
 
     test('moderation comes before the vendor switch', () {
