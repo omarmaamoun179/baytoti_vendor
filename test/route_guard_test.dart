@@ -98,6 +98,20 @@ void main() {
         );
       }
     });
+
+    test('a family that has just signed up chooses its location first', () {
+      final session = SessionNotifier()..signedIn(newAccount: true);
+      for (final path in guestOnlyRoutes) {
+        expect(
+          redirectForMember(location: path, session: session),
+          AppRoutes.locationSetup,
+        );
+      }
+      expect(
+        redirectForMember(location: AppRoutes.locationSetup, session: session),
+        isNull,
+      );
+    });
   });
 
   group('classification is exhaustive', () {

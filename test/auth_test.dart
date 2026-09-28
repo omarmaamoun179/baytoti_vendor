@@ -72,6 +72,7 @@ void main() {
 
     expect(cubit.state.hasSession, isTrue);
     expect(session.isAuthenticated, isTrue);
+    expect(session.isNewAccount, isFalse);
 
     final token = MockSessionToken.decode(tokens.tokens?.accessToken);
     expect(token?.isNewFamily, isFalse);
@@ -95,6 +96,7 @@ void main() {
     await cubit.verifyOtp(AuthMockDataSource.demoCode);
 
     expect(cubit.state.user?.fullName, 'مطبخ سارة');
+    expect(session.isNewAccount, isTrue);
     final token = MockSessionToken.decode(tokens.tokens?.accessToken);
     expect(token?.isNewFamily, isTrue);
     expect(token?.familyName, 'مطبخ سارة');

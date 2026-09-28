@@ -279,6 +279,8 @@
   "location_country": "Country",
   "location_governorate": "Governorate",
   "location_save": "Save location",
+  "location_setup_intro": "One last step: choose the country and governorate your family cooks in.",
+  "location_continue": "Continue",
   "location_failed": "Couldn’t load the locations.",
   "location_save_failed": "Couldn’t save your location.",
   "location_governorate_mismatch": "That governorate isn’t in the chosen country.",

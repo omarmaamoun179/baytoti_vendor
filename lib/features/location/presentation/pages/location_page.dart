@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/di_exports.dart';
+import '../../../../core/routing/routes.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/utils/app_strings.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -22,25 +23,33 @@ import '../cubit/location_setup_state.dart';
 /// saved with `POST /location/context`. Not in the vendor design; built in
 /// its style from the store tab's area chips. Pops with the saved
 /// [LocationContext] so the row that opened it shows it at once.
+///
+/// With [setup] it is `/location/setup`, the last step of signing up: the
+/// only route on the stack, so there is no back, and a save goes on to the
+/// dashboard.
 class LocationPage extends StatelessWidget {
-  const LocationPage({super.key});
+  final bool setup;
+
+  const LocationPage({super.key, this.setup = false});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<LocationSetupCubit>()..load(),
-      child: const _LocationView(),
+      child: _LocationView(setup: setup),
     );
   }
 }
 
 class _LocationView extends StatelessWidget {
-  const _LocationView();
+  final bool setup;
+
+  const _LocationView({required this.setup});
 
   void _onState(BuildContext context, LocationSetupState state) {
     final saved = state.saved;
     if (state.status == LocationSetupStatus.saved && saved != null) {
-      context.pop(saved);
+      setup ? context.go(AppRoutes.dashboard) : context.pop(saved);
       return;
     }
     final message = state.errorMessage;
@@ -67,7 +76,7 @@ class _LocationView extends StatelessWidget {
               ScreenHeader(
                 kicker: 'kicker_location'.tr(),
                 title: 'title_location'.tr(),
-                showBack: true,
+                showBack: !setup,
               ),
               Expanded(
                 child: switch (state.status) {
@@ -85,7 +94,7 @@ class _LocationView extends StatelessWidget {
               ? null
               : BottomActionBar(
                   child: PrimaryButton(
-                    label: 'location_save'.tr(),
+                    label: (setup ? 'location_continue' : 'location_save').tr(),
                     loading: state.isSaving,
                     enabled: state.canSave,
                     onPressed: cubit.save,
@@ -108,7 +117,7 @@ class _LocationView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'location_intro'.tr(),
+                (setup ? 'location_setup_intro' : 'location_intro').tr(),
                 style: AppStrings.text125w400Loose.c(p.fg2),
               ),
               SizedBox(height: 16.h),

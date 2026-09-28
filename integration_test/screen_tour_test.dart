@@ -149,7 +149,7 @@ void main() {
     await context.setLocale(const Locale('ar'));
     await wait(tester, 1500);
 
-    // ── A new family: sign up, straight to the dashboard ─────────────
+    // ── A new family: sign up, choose a location, then the dashboard ─
     await sl<AuthCubit>().logout();
     await wait(tester, 1500);
     await tapText(tester, 'أسرة جديدة');
@@ -176,6 +176,11 @@ void main() {
     await tapText(tester, 'إنشاء الحساب');
     await enterCode(tester);
     await tapText(tester, 'تحقق ومتابعة');
+    await wait(tester, 1500);
+    await capture('new_family_location');
+    await tapText(tester, 'الكويت');
+    await tapText(tester, 'حولي');
+    await tapText(tester, 'متابعة');
     await wait(tester, 1500);
     await capture('new_family_dashboard');
   });

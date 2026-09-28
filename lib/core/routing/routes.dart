@@ -40,6 +40,11 @@ class AppRoutes {
   /// The account's country and governorate, opened from the store tab.
   static const String location = '/location';
 
+  /// The same choice as the last step of signing up: where the router takes
+  /// a family whose sign-up code was just confirmed, before the dashboard.
+  /// Beneath [location], so the guard's prefix match protects it.
+  static const String locationSetup = '$location/setup';
+
   // ── Query keys ─────────────────────────────────────────────────────
   /// `/orders?tab=new` — the dashboard's "see all" and its new-orders
   /// figure open a filtered tab.

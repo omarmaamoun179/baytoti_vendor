@@ -89,7 +89,8 @@ class AuthCubit extends BaseCubit<AuthState> {
   }
 
   /// `POST /auth/verify-otp` with [code]; when the server accepts it, the
-  /// session opens and the router takes the vendor in.
+  /// session opens and the router takes the vendor in — a family that has
+  /// just signed up to choose its location first.
   Future<void> verifyOtp(String code) async {
     final challenge = state.challenge;
     if (challenge == null || state.isLoading) return;
@@ -106,7 +107,9 @@ class AuthCubit extends BaseCubit<AuthState> {
       _emitFailure,
       (session) {
         emit(state.signedIn(session.user));
-        _sessionNotifier.signedIn();
+        _sessionNotifier.signedIn(
+          newAccount: challenge.mode == AuthMode.signup,
+        );
       },
     );
   }

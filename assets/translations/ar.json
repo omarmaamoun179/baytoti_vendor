@@ -286,6 +286,8 @@
   "location_country": "الدولة",
   "location_governorate": "المحافظة",
   "location_save": "حفظ الموقع",
+  "location_setup_intro": "خطوة أخيرة: اختر الدولة والمحافظة التي تطبخ فيها أسرتك.",
+  "location_continue": "متابعة",
   "location_failed": "تعذّر تحميل المواقع.",
   "location_save_failed": "تعذّر حفظ موقعك.",
   "location_governorate_mismatch": "المحافظة المختارة لا تتبع الدولة.",

@@ -52,7 +52,7 @@ const Set<String> publicRoutes = {
 };
 
 /// Public routes a signed-in vendor has no business on, sent to the
-/// dashboard instead.
+/// dashboard instead — or, just after a sign-up, to choose a location.
 const Set<String> guestOnlyRoutes = {AppRoutes.login, AppRoutes.otp};
 
 /// True when [location] is one of [protectedRoutes] or sits beneath one.
@@ -95,14 +95,15 @@ String? redirectForGuest({
 ///
 /// This is how a confirmed code leaves the form: the session flips, the
 /// router re-runs its guard through `refreshListenable`, and this answers.
+/// A family that has just signed up chooses its location first; the
+/// location page goes on to the dashboard once it is saved.
 String? redirectForMember({
   required String location,
   required SessionNotifier session,
 }) {
   if (!session.isResolved || !session.isAuthenticated) return null;
-  return guestOnlyRoutes.contains(Uri.parse(location).path)
-      ? AppRoutes.dashboard
-      : null;
+  if (!guestOnlyRoutes.contains(Uri.parse(location).path)) return null;
+  return session.isNewAccount ? AppRoutes.locationSetup : AppRoutes.dashboard;
 }
 
 String? _guard(BuildContext context, GoRouterState state) {
@@ -245,6 +246,11 @@ final GoRouter appRouter = GoRouter(
       AppRoutes.location,
       'location',
       (state) => const LocationPage(),
+    ),
+    _fullScreen(
+      AppRoutes.locationSetup,
+      'locationSetup',
+      (state) => const LocationPage(setup: true),
     ),
   ],
 );

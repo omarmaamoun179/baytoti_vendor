@@ -161,7 +161,9 @@ opens.
   (`LocationContextCubit`, per screen), and `/location` changes it —
   `GET countries` and `countries/{id}/governorates` (public, cached) as
   chips, saved with `POST location/context {mode: manual, country_id,
-  governorate_id}`; the page pops with the saved `LocationContext`.
+  governorate_id}`; the page pops with the saved `LocationContext`. A
+  family that has just signed up is sent to the same page first
+  (`/location/setup`), which goes to the dashboard on save instead.
   **The answer's shape is a guess** (the spec types it "object"): the
   `selected_*` pair, then `resolved_*`, then plain `country_id`, maybe under
   `context`; `data: null` or a 404 is no location. Names missing from it are
@@ -487,7 +489,10 @@ five tabs (home, orders, products, offers, store) are `StatefulShellRoute`
 branches; order details, the product form, notifications and the location
 page are pushed on the root navigator over the tab bar. A confirmed code leaves the form through
 the guard: the session flips and `redirectForMember` sends `/login` and
-`/otp` to the dashboard. The product form
+`/otp` to the dashboard — or, when the code finished a sign-up
+(`SessionNotifier.isNewAccount`), to `/location/setup`: the location page
+as the last step of signing up, with no back, going on to the dashboard
+once the location is saved. The product form
 is registered as `/products/new` before `/products/:id`, which would read
 "new" as an id (the route test pins it).
 
