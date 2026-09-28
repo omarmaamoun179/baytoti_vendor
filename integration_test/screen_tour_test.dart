@@ -145,7 +145,7 @@ void main() {
     await context.setLocale(const Locale('ar'));
     await wait(tester, 1500);
 
-    // ── A new family: sign up, then the approval screen ──────────────
+    // ── A new family: sign up, straight to the dashboard ─────────────
     await sl<AuthCubit>().logout();
     await wait(tester, 1500);
     await tapText(tester, 'أسرة جديدة');
@@ -173,9 +173,6 @@ void main() {
     await enterCode(tester);
     await tapText(tester, 'تحقق ومتابعة');
     await wait(tester, 1500);
-    await capture('onboarding');
-    await tapText(tester, 'محاكاة الاعتماد');
-    await wait(tester, 1500);
-    await capture('approved_dashboard');
+    await capture('new_family_dashboard');
   });
 }

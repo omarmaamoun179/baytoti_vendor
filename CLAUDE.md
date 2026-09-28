@@ -132,13 +132,16 @@ sign-out) at the foot of the store tab.
   (token flat or nested, user wrapped or not); a token without an account is
   kept and `GET auth/me` read with it. **Unverified live:** that answer's
   exact shape, and whether sign-in by code works for every vendor account.
-- **The onboarding gate**: `AccountGate` wraps the shell and every pushed
-  route; until the review is approved the family sees `ApplicationStatusPage`
-  (V01). Live, the review is `GET vendor/profile`'s `status`: `active` /
+- **The onboarding gate is off** (2026-09-28, the user's call): a signed-in
+  family goes straight to the dashboard whatever its review says. The
+  onboarding feature is kept but not routed: `AccountGate` would show
+  `ApplicationStatusPage` (V01) in place of any store screen until approval,
+  and wrapping the shell and `_fullScreen`'s builder in it again turns it
+  back on. Live, the review is `GET vendor/profile`'s `status`: `active` /
   `approved` open the store, a refusal (`rejected`, `suspended`…) reads as
-  rejected, anything else holds the family at the gate. The timeline is drawn
-  from that one status. `ApplicationCubit` is app-wide and follows
-  `SessionNotifier`.
+  rejected, anything else is under review. The timeline is drawn from that
+  one status. `ApplicationCubit` is app-wide, follows `SessionNotifier` and
+  still reads the profile on sign-in.
 - **The store** is the first of `GET vendor/stores` — registration makes
   exactly one. `VendorStoreResolver` keeps its id for the session (forgotten
   on sign-out) for the store and products sources. The store tab saves with
@@ -455,7 +458,9 @@ and `search=` on the wire searches for the empty string.
 One `GoRouter` in `core/routing/app_router.dart`, paths in `routes.dart`. The
 five tabs (home, orders, products, offers, store) are `StatefulShellRoute`
 branches; order details, the product form and notifications are pushed on the
-root navigator over the tab bar, each behind `AccountGate`. The product form
+root navigator over the tab bar. A confirmed code leaves the form through
+the guard: the session flips and `redirectForMember` sends `/login` and
+`/otp` to the dashboard. The product form
 is registered as `/products/new` before `/products/:id`, which would read
 "new" as an id (the route test pins it).
 

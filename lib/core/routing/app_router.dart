@@ -7,7 +7,6 @@ import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/offers/presentation/pages/offers_page.dart';
-import '../../features/onboarding/presentation/widgets/account_gate.dart';
 import '../../features/orders/domain/entities/order_status.dart';
 import '../../features/orders/presentation/pages/order_details_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
@@ -112,8 +111,7 @@ String? _guard(BuildContext context, GoRouterState state) {
 
 String _idOf(GoRouterState state) => state.pathParameters['id'] ?? '';
 
-/// A screen pushed over the tab bar. It sits behind [AccountGate] too, so a
-/// deep link cannot reach a store screen before approval.
+/// A screen pushed over the tab bar.
 GoRoute _fullScreen(
   String path,
   String name,
@@ -123,7 +121,7 @@ GoRoute _fullScreen(
       path: path,
       name: name,
       parentNavigatorKey: rootNavigatorKey,
-      builder: (context, state) => AccountGate(child: build(state)),
+      builder: (context, state) => build(state),
     );
 
 /// The app's single [GoRouter].
@@ -157,8 +155,11 @@ final GoRouter appRouter = GoRouter(
 
     // ── Tabs ─────────────────────────────────────────────────────────
     StatefulShellRoute.indexedStack(
+      // No approval gate: a signed-in family goes straight to the dashboard
+      // whatever its review says, and the server stays the authority on
+      // every vendor call.
       builder: (context, state, navigationShell) =>
-          AccountGate(child: VendorShell(navigationShell: navigationShell)),
+          VendorShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(
           routes: [
