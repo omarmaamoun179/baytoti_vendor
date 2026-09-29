@@ -37,6 +37,11 @@ class AppColors {
   static const Color amberBg = Color(0xFFFBEEDC); // --bt-amber-bg
   static const Color amberInk = Color(0xFFA9651A); // --bt-amber-ink
 
+  /// The amber the vendor app itself sits on — its splash and its icon — to
+  /// tell it from the customer app's green. Not a CSS variable: the design
+  /// writes it into the splash and the icon sheet.
+  static const Color vendorGround = Color(0xFFD9822A);
+
   // ── Refusal ────────────────────────────────────────────────────────
   /// The design draws no error state of its own. This is the brick the API
   /// contract uses for `DELETE`, so a failure sits in the same family.

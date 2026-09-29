@@ -29,6 +29,9 @@ class AppStrings {
       );
 
   // ── Display ────────────────────────────────────────────────────────
+  /// The splash's name — `800 46px/1`.
+  static TextStyle get text46w800 => _s(46, FontWeight.w800, 1);
+
   /// The discount being drafted — `800 44px/1`.
   static TextStyle get text44w800 => _s(44, FontWeight.w800, 1);
 
@@ -79,8 +82,9 @@ class AppStrings {
   static TextStyle get text13w800 => _s(13, FontWeight.w800, 1.2);
   static TextStyle get text13w800Flat => _s(13, FontWeight.w800, 1);
 
-  /// Empty-state line — `600 13px/1.5`.
+  /// Empty-state line — `600 13px/1.5`; the splash's tagline — `/1.6`.
   static TextStyle get text13w600 => _s(13, FontWeight.w600, 1.5);
+  static TextStyle get text13w600Loose => _s(13, FontWeight.w600, 1.6);
 
   /// The phone field's typed number — `500 13px/1.4`; its hint —
   /// `400 13px/1.4`. From the Cloak ramp `PhoneTextFormField` was built on.

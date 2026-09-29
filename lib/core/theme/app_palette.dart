@@ -70,6 +70,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color amberBg;
   final Color amberInk;
 
+  /// The vendor app's own amber, the ground of its splash (and its icon).
+  final Color brandGround;
+
   /// A refusal — a failed request, a rejected product.
   final Color bad;
   final Color badBg;
@@ -98,6 +101,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.amber,
     required this.amberBg,
     required this.amberInk,
+    required this.brandGround,
     required this.bad,
     required this.badBg,
     required this.shadow,
@@ -124,6 +128,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     amber: AppColors.amber,
     amberBg: AppColors.amberBg,
     amberInk: AppColors.amberInk,
+    brandGround: AppColors.vendorGround,
     bad: AppColors.bad,
     badBg: AppColors.badBg,
     shadow: AppColors.cardShadow,
@@ -161,6 +166,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? amber,
     Color? amberBg,
     Color? amberInk,
+    Color? brandGround,
     Color? bad,
     Color? badBg,
     Color? shadow,
@@ -186,6 +192,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       amber: amber ?? this.amber,
       amberBg: amberBg ?? this.amberBg,
       amberInk: amberInk ?? this.amberInk,
+      brandGround: brandGround ?? this.brandGround,
       bad: bad ?? this.bad,
       badBg: badBg ?? this.badBg,
       shadow: shadow ?? this.shadow,
@@ -217,6 +224,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       amber: mix(amber, other.amber),
       amberBg: mix(amberBg, other.amberBg),
       amberInk: mix(amberInk, other.amberInk),
+      brandGround: mix(brandGround, other.brandGround),
       bad: mix(bad, other.bad),
       badBg: mix(badBg, other.badBg),
       shadow: mix(shadow, other.shadow),

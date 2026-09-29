@@ -84,10 +84,10 @@ session restore → `runApp`.
 
 ## Current state
 
-Every screen of the design exists: onboarding (V01), dashboard (V02), orders
-(V03), order details (V04), products (V05), the product form (V06), offers
-(V07), store profile (V08) and notifications (V09). Not in the vendor design,
-and built in its style: the splash, sign-in / sign-up and the code screen
+Every screen of the design exists: the splash, onboarding (V01), dashboard
+(V02), orders (V03), order details (V04), products (V05), the product form
+(V06), offers (V07), store profile (V08) and notifications (V09). Not in the
+vendor design, and built in its style: sign-in / sign-up and the code screen
 (from the customer design's screens 02–03), editing a product (the V06 form
 over `/products/:id`), the reject sheet, an account card (language,
 location, sign-out) at the foot of the store tab, and the location page it
@@ -249,6 +249,11 @@ opens.
   public `GET products` and `GET stores` answer 500 without a token
   (`LocationContextService` given a null user); validation messages ignore
   the language headers.
+- **Splash**: the design's, on the vendor amber (`palette.brandGround`),
+  mirroring the customer app's (`../baytoti`): one `AnimationController`
+  over `SplashTimeline.length` (3.5 s) drives the painted mark
+  (`SplashMark`) and the text, and its end moves on — to the dashboard or
+  sign-in — as a tap does. It never repeats, so `pumpAndSettle` settles.
 - **App icon**: the vendor icon from Claude Design's "Baytouti App Icons"
   (the house, leaf and bird on amber, an awning over the door), kept as SVG
   in `assets/icons/` beside the 1024 PNGs `flutter_launcher_icons` reads

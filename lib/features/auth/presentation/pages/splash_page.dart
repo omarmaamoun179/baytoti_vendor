@@ -1,7 +1,6 @@
-import 'dart:async';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,14 +8,16 @@ import '../../../../core/di/di_exports.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/utils/app_strings.dart';
-import '../../../../core/widgets/brand_mark.dart';
+import '../../../../core/widgets/caps_label.dart';
+import '../widgets/splash_mark.dart';
+import '../widgets/splash_timeline.dart';
 
-/// The brand while the app settles, then on to the dashboard or sign-in.
-///
-/// Not in the vendor design, which starts at onboarding; drawn from the
-/// sign-in screen's mark and the design canvas's "Vendor" badge. The session
-/// was resolved in `bootstrap` before the first frame, so this only holds
-/// for the fade. A tap skips it.
+/// `/splash` — the design's splash: the mark drawn on the vendor app's
+/// amber, the shop awning dropping over the door, the name rising under it,
+/// and a bar that fills until the app moves on after
+/// [SplashTimeline.length], to the dashboard or sign-in. The session was
+/// resolved in `bootstrap` before the first frame, so nothing is waited on
+/// here. A tap skips it.
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -26,33 +27,29 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
-  static const Duration _hold = Duration(milliseconds: 1300);
-
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 700),
-  )..forward();
-
-  Timer? _timer;
+  late final AnimationController _clock;
   bool _left = false;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer(_hold, _leave);
+    _clock = AnimationController(vsync: this, duration: SplashTimeline.length)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) _leave();
+      })
+      ..forward();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _controller.dispose();
+    _clock.dispose();
     super.dispose();
   }
 
   void _leave() {
     if (_left || !mounted) return;
     _left = true;
-    _timer?.cancel();
+    _clock.stop();
 
     final signedIn = sl<SessionNotifier>().isAuthenticated;
     context.go(signedIn ? AppRoutes.dashboard : AppRoutes.login);
@@ -60,52 +57,125 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    final p = context.palette;
-    final fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-
-    return Scaffold(
-      backgroundColor: p.accent,
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _leave,
-        child: Center(
-          child: FadeTransition(
-            opacity: fade,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: .92, end: 1).animate(fade),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BrandMark(size: 92.r),
-                  SizedBox(height: 18.h),
-                  Text(
-                    'brand_wordmark'.tr(),
-                    style: AppStrings.text30w800.c(p.onAccent).tracked(-.02),
-                  ),
-                  SizedBox(height: 12.h),
-                  _buildBadge(context),
-                ],
-              ),
-            ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: context.palette.brandGround,
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _leave,
+          child: AnimatedBuilder(
+            animation: _clock,
+            builder: (context, _) =>
+                _buildFrame(context, SplashTimeline.secondsOf(_clock)),
           ),
         ),
       ),
     );
   }
 
-  /// The design canvas's "VENDOR" badge, inverted onto the accent.
-  Widget _buildBadge(BuildContext context) {
-    final p = context.palette;
+  Widget _buildFrame(BuildContext context, double seconds) {
+    final white = context.palette.onAccent;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        color: p.onAccent,
-        borderRadius: BorderRadius.circular(7.r),
+    return SizedBox.expand(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SplashMark(seconds: seconds, size: 190.r),
+              _fadeUp(
+                seconds,
+                SplashTimeline.titleAt,
+                top: 6.h,
+                // Not tracked, unlike the design: spacing pulls Arabic's
+                // joined letters apart.
+                Text(
+                  'brand_wordmark'.tr(),
+                  style: AppStrings.text46w800.c(white),
+                ),
+              ),
+              _fadeUp(
+                seconds,
+                SplashTimeline.capsAt,
+                top: 12.h,
+                CapsLabel(
+                  'splash_caps'.tr(),
+                  color: white.withValues(alpha: .8),
+                  tracking: .34,
+                ),
+              ),
+              _fadeUp(
+                seconds,
+                SplashTimeline.taglineAt,
+                top: 18.h,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Text(
+                    'splash_tagline'.tr(),
+                    textAlign: TextAlign.center,
+                    style: AppStrings.text13w600Loose.c(white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Positioned(bottom: 70.h, child: _buildProgress(context, seconds)),
+        ],
       ),
-      child: Text(
-        'VENDOR',
-        style: AppStrings.text12w800.c(p.accent).tracked(.16),
+    );
+  }
+
+  /// `btFadeUp`: in from 12 below.
+  Widget _fadeUp(
+    double seconds,
+    double start,
+    Widget child, {
+    required double top,
+  }) {
+    final shown = SplashTimeline.eased(
+      SplashTimeline.fadeUp,
+      seconds,
+      start,
+      SplashTimeline.fadeFor,
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(top: top),
+      child: Opacity(
+        opacity: shown.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 12.h * (1 - shown)),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  /// `btBar`: fills from the start side over three seconds.
+  Widget _buildProgress(BuildContext context, double seconds) {
+    final white = context.palette.onAccent;
+    final radius = BorderRadius.circular(3.r);
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: Container(
+        width: 120.w,
+        height: 3.h,
+        color: white.withValues(alpha: .28),
+        alignment: AlignmentDirectional.centerStart,
+        child: FractionallySizedBox(
+          widthFactor: SplashTimeline.progress(
+            seconds,
+            SplashTimeline.barAt,
+            SplashTimeline.barFor,
+          ),
+          heightFactor: 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: white, borderRadius: radius),
+          ),
+        ),
       ),
     );
   }

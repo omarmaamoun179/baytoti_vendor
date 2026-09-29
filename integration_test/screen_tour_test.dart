@@ -74,7 +74,10 @@ void main() {
     await wait(tester, 400);
     final context = tester.element(find.byType(MaterialApp));
     await context.setLocale(const Locale('ar'));
-    await wait(tester, 2200);
+    // The splash with its name and tagline in; it moves on at 3.5 s.
+    await wait(tester, 2600);
+    await capture('splash');
+    await wait(tester, 1400);
 
     // ── Sign in ──────────────────────────────────────────────────────
     await capture('sign_in');
