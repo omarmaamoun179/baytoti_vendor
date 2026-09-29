@@ -254,6 +254,11 @@ opens.
   over `SplashTimeline.length` (3.5 s) drives the painted mark
   (`SplashMark`) and the text, and its end moves on — to the dashboard or
   sign-in — as a tap does. It never repeats, so `pumpAndSettle` settles.
+  Before it, the native launch screen (`flutter_native_splash`, config in
+  `pubspec.yaml`) is the same amber alone, so the two read as one; it is
+  not preserved, since no frame is drawn before `runApp`. After
+  `dart run flutter_native_splash:create`, revert `ios/Runner/Info.plist`:
+  it re-indents the file to add `UIStatusBarHidden = false`, the default.
 - **App icon**: the vendor icon from Claude Design's "Baytouti App Icons"
   (the house, leaf and bird on amber, an awning over the door), kept as SVG
   in `assets/icons/` beside the 1024 PNGs `flutter_launcher_icons` reads
@@ -262,7 +267,7 @@ opens.
   `ios/Runner.xcodeproj/project.pbxproj`: 0.14.4 writes `AppIcon` into
   `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS`, a yes/no
   setting.
-- **Not done**: the splash is Flutter only (no native splash); identifiers are still the template's
+- **Not done**: identifiers are still the template's
   `com.example.baytoti_vendor`; Android release is signed with the debug key;
   nothing refreshes a token (Sanctum tokens do not refresh); the location is
   set by hand only (`mode: auto` would need a device-location package).

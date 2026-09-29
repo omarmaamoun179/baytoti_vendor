@@ -82,6 +82,9 @@ dev_dependencies:
 
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  # Only its generator is used (see `flutter_native_splash:` below); the app
+  # never calls `FlutterNativeSplash`, so it is not a runtime dependency.
+  flutter_native_splash: ^2.4.8
 
 # connectivity_plus >= 7.1.1 calls NWPath.isUltraConstrained, which only exists
 # in the iOS/macOS 26 SDK (Xcode 26). Pinned to the last version without it —
@@ -121,6 +124,21 @@ flutter:
           weight: 600
         - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
           weight: 700
+
+# Run `dart run flutter_native_splash:create` after changing this block.
+# The launch screen is the splash's amber alone, so it hands over to the
+# Flutter splash (`SplashPage`), which starts on the same amber before the
+# house draws itself. Nothing preserves it: `bootstrap` draws no frame before
+# `runApp`, and the first frame is the splash. The image is a transparent
+# placeholder (not bundled): without one the generator centres an opaque
+# 1×1 black PNG on iOS, and Android 12+ shows the launcher icon.
+flutter_native_splash:
+  color: "#D9822A"
+  image: assets/native_splash/transparent.png
+  android_12:
+    color: "#D9822A"
+    image: assets/native_splash/transparent.png
+  web: false
 
 # Run `dart run flutter_launcher_icons` after changing this block.
 # The source is the vendor icon in Claude Design's "Baytouti App Icons",
