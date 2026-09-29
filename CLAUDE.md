@@ -272,8 +272,13 @@ opens.
   `ios/Runner.xcodeproj/project.pbxproj`: 0.14.4 writes `AppIcon` into
   `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS`, a yes/no
   setting.
-- **Not done**: identifiers are still the template's
-  `com.example.baytoti_vendor`; Android release is signed with the debug key;
+- **Identifier**: `com.alqudirysolutions.baytouti.vendor` on both
+  platforms (bundle ID and application ID), after the customer app's
+  `com.alqudirysolutions.baytouti` and Cloak's `….cloak.vendor`; signed with
+  the same team (`3L2ESXVMCL`). The Dart package stays `baytoti_vendor`.
+- **Not done**: the name under the icon is still the template's
+  (`baytoti_vendor` on Android, "Baytoti Vendor" on iOS); Android release
+  is signed with the debug key;
   nothing refreshes a token (Sanctum tokens do not refresh); the location is
   set by hand only (`mode: auto` would need a device-location package).
 
