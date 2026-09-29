@@ -17,7 +17,9 @@ import '../../domain/entities/auth_params.dart';
 ///
 /// Owns its controllers and reports the whole [VendorDetails] through
 /// [onChanged] on every edit, so the form keeps only the latest value. The
-/// inputs validate with the enclosing `Form`.
+/// inputs validate with the enclosing `Form`, and each also shows the
+/// server's refusal of its field ([serverError], by the API's field name)
+/// until it is edited ([onEdited]).
 class VendorDetailsFields extends StatefulWidget {
   /// What to start from — the form's last value, so switching to the sign-in
   /// tab and back does not wipe the sections. The business phone starts
@@ -29,10 +31,32 @@ class VendorDetailsFields extends StatefulWidget {
 
   final ValueChanged<VendorDetails> onChanged;
 
+  /// The server's message for an API field (`business_email`), if any.
+  final String? Function(String field) serverError;
+
+  /// Told which API field was edited, so its server message goes.
+  final ValueChanged<String> onEdited;
+
+  /// The API fields drawn here, whose server messages show under them.
+  static const Set<String> fields = {
+    'business_name',
+    'business_phone',
+    'business_email',
+    'commercial_license',
+    'civil_id',
+    'bank_account',
+    'iban',
+    'address',
+    'store_name',
+    'store_description',
+  };
+
   const VendorDetailsFields({
     super.key,
     required this.focusNode,
     required this.onChanged,
+    required this.serverError,
+    required this.onEdited,
     this.initial = const VendorDetails(),
   });
 
@@ -139,13 +163,16 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
           maxLength: VendorDetails.businessNameMaxLength,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.organizationName],
+          onChanged: (_) => widget.onEdited('business_name'),
           onSubmitted: (_) => _nodes[0].requestFocus(),
-          validator: (value) => validateTextLength(
-            value,
-            isRequired: true,
-            minLength: VendorDetails.businessNameMinLength,
-            maxLength: VendorDetails.businessNameMaxLength,
-          ),
+          validator: (value) =>
+              validateTextLength(
+                value,
+                isRequired: true,
+                minLength: VendorDetails.businessNameMinLength,
+                maxLength: VendorDetails.businessNameMaxLength,
+              ) ??
+              widget.serverError('business_name'),
         ),
         SizedBox(height: 16.h),
         CapsLabel(_optional('auth_business_phone')),
@@ -160,7 +187,13 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
           radius: 12.r,
           invalidMessage: 'invalid_phone'.tr(),
           lengthMessage: (digits) => 'phone_length'.tr(args: ['$digits']),
+          // Runs after the field's own checks.
+          validator: (_) => widget.serverError('business_phone'),
           onInputChanged: (number) {
+            // Also called when the field regroups the same number.
+            if (number.phoneNumber != _businessPhoneNumber?.phoneNumber) {
+              widget.onEdited('business_phone');
+            }
             _businessPhoneNumber = number;
             _report();
           },
@@ -170,6 +203,7 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
         _buildOptional(
           p,
           label: 'auth_business_email',
+          field: 'business_email',
           controller: _businessEmail,
           index: 1,
           maxLength: VendorDetails.businessEmailMaxLength,
@@ -179,6 +213,7 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
         _buildOptional(
           p,
           label: 'auth_commercial_license',
+          field: 'commercial_license',
           controller: _commercialLicense,
           index: 2,
           maxLength: VendorDetails.commercialLicenseMaxLength,
@@ -186,6 +221,7 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
         _buildOptional(
           p,
           label: 'auth_civil_id',
+          field: 'civil_id',
           controller: _civilId,
           index: 3,
           maxLength: VendorDetails.civilIdMaxLength,
@@ -194,6 +230,7 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
         _buildOptional(
           p,
           label: 'auth_bank_account',
+          field: 'bank_account',
           controller: _bankAccount,
           index: 4,
           maxLength: VendorDetails.bankAccountMaxLength,
@@ -201,6 +238,7 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
         _buildOptional(
           p,
           label: 'auth_iban',
+          field: 'iban',
           hintText: 'auth_iban_hint'.tr(),
           controller: _iban,
           index: 5,
@@ -209,6 +247,7 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
         _buildOptional(
           p,
           label: 'auth_address',
+          field: 'address',
           controller: _address,
           index: 6,
           maxLength: VendorDetails.addressMaxLength,
@@ -223,18 +262,22 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
           fillColor: p.surf,
           maxLength: VendorDetails.storeNameMaxLength,
           textInputAction: TextInputAction.next,
+          onChanged: (_) => widget.onEdited('store_name'),
           onSubmitted: (_) => _nodes[8].requestFocus(),
-          validator: (value) => validateTextLength(
-            value,
-            isRequired: true,
-            minLength: VendorDetails.storeNameMinLength,
-            maxLength: VendorDetails.storeNameMaxLength,
-          ),
+          validator: (value) =>
+              validateTextLength(
+                value,
+                isRequired: true,
+                minLength: VendorDetails.storeNameMinLength,
+                maxLength: VendorDetails.storeNameMaxLength,
+              ) ??
+              widget.serverError('store_name'),
         ),
         SizedBox(height: 16.h),
         _buildOptional(
           p,
           label: 'auth_store_description',
+          field: 'store_description',
           hintText: 'store_story_placeholder'.tr(),
           controller: _storeDescription,
           index: 8,
@@ -248,12 +291,13 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
 
   String _optional(String key) => 'field_optional'.tr(args: [key.tr()]);
 
-  /// A field that may be left blank, followed by its gap. [index] is its
-  /// node; `next` hands focus to the one after, except from a multiline
-  /// field, where the key starts a new line.
+  /// A field that may be left blank, followed by its gap. [field] is its
+  /// API name and [index] its node; `next` hands focus to the one after,
+  /// except from a multiline field, where the key starts a new line.
   Widget _buildOptional(
     AppPalette p, {
     required String label,
+    required String field,
     required TextEditingController controller,
     required int index,
     required int maxLength,
@@ -277,12 +321,15 @@ class _VendorDetailsFieldsState extends State<VendorDetailsFields> {
           keyboardType: keyboardType,
           textInputAction:
               multiline ? TextInputAction.newline : TextInputAction.next,
+          onChanged: (_) => widget.onEdited(field),
           onSubmitted:
               multiline ? null : (_) => _nodes[index + 1].requestFocus(),
           // Only length is checked beyond the email's form: the API states
           // no format for a licence, civil ID, account or IBAN.
-          validator: validator ??
-              (value) => validateTextLength(value, maxLength: maxLength),
+          validator: (value) =>
+              (validator?.call(value) ??
+                  validateTextLength(value, maxLength: maxLength)) ??
+              widget.serverError(field),
         ),
       );
 }

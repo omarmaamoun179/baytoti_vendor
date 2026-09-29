@@ -87,7 +87,8 @@ class VendorDetails extends Equatable {
 }
 
 /// What the sign-up tab adds to the number: the rest of the
-/// `VendorRegisterRequest` — the account, and the [vendor] behind it.
+/// `VendorRegisterRequest` — the account, its optional photo, and the
+/// [vendor] behind it.
 ///
 /// The API marks `phone` nullable, but the code that finishes sign-up is
 /// sent to it, so the form requires one.
@@ -95,6 +96,9 @@ class SignupDetails extends Equatable {
   static const int nameMinLength = 3;
   static const int nameMaxLength = 100;
   static const int emailMaxLength = 255;
+
+  /// The API's limit on the profile photo (`avatar`): 5120 KB.
+  static const int avatarMaxBytes = 5120 * 1024;
 
   /// The API's `password` minimum; the form's strength rule is stricter.
   static const int passwordMinLength = 8;
@@ -107,17 +111,22 @@ class SignupDetails extends Equatable {
   final String passwordConfirmation;
   final VendorDetails vendor;
 
+  /// The profile photo, a file on this device picked from the gallery, or
+  /// null for none — it is optional.
+  final String? avatarPath;
+
   const SignupDetails({
     required this.name,
     required this.email,
     required this.password,
     required this.passwordConfirmation,
     required this.vendor,
+    this.avatarPath,
   });
 
   @override
   List<Object?> get props =>
-      [name, email, password, passwordConfirmation, vendor];
+      [name, email, password, passwordConfirmation, vendor, avatarPath];
 
   @override
   String toString() => 'SignupDetails($name, $email, password: ***)';

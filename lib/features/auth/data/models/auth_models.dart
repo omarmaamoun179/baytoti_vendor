@@ -1,3 +1,4 @@
+import '../../../../core/network/multipart_body.dart';
 import '../../../../core/utils/json_read.dart';
 import '../../../../core/utils/validators/validator_logic.dart';
 import '../../domain/entities/auth_params.dart';
@@ -146,7 +147,8 @@ Map<String, dynamic> verifyOtpBody(VerifyOtpParams params) => {
 /// field left blank is left out rather than sent empty: an empty string is
 /// a value the server would store, or refuse as an invalid email.
 /// [deviceName] names the token the account is issued, for the family's
-/// list of signed-in devices.
+/// list of signed-in devices. A chosen photo is the `avatar` file, which
+/// makes the body multipart ([multipartBodyFrom]).
 Map<String, dynamic> vendorRegisterBody(
   String phone,
   SignupDetails signup, {
@@ -173,6 +175,7 @@ Map<String, dynamic> vendorRegisterBody(
     'address': ?_blankToNull(vendor.address),
     'store_name': vendor.storeName.trim(),
     'store_description': ?_blankToNull(vendor.storeDescription),
+    if (signup.avatarPath case final avatar?) 'avatar': FileUpload(avatar),
   };
 }
 

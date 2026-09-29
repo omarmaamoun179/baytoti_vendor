@@ -4,6 +4,7 @@ import '../../../../core/domain/failure.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/api_response.dart';
 import '../../../../core/network/guarded_request.dart';
+import '../../../../core/network/multipart_body.dart';
 import '../../../../core/services/network_service.dart';
 import '../../domain/entities/auth_params.dart';
 import '../models/auth_models.dart';
@@ -25,11 +26,17 @@ class AuthRemoteDataSource implements AuthDataSource {
       guardedRequest(
         'AuthRemoteDataSource.register',
         () async {
+          await checkAvatarSize(signup);
+          final body =
+              vendorRegisterBody(phone, signup, deviceName: _deviceName);
           final response = await _networkService.post(
             ApiEndPoint.vendorRegister,
             // Public: there is no session yet to refresh.
             skipAuthRefresh: true,
-            data: vendorRegisterBody(phone, signup, deviceName: _deviceName),
+            // A photo makes it multipart; without one it stays JSON.
+            data: containsFileUpload(body)
+                ? await multipartBodyFrom(body)
+                : body,
           );
           // Only whether it succeeded is read. The answer carries no token,
           // and an account shaped otherwise than expected must not turn one

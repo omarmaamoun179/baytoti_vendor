@@ -121,12 +121,17 @@ opens.
   :561228"`), shown under the boxes (`otp_demo_hint`), and its length sets
   the boxes (six otherwise). A wrong code is a 422 on `otp`. Sign-up first
   sends `POST auth/vendor/register` — the whole `VendorRegisterRequest`:
-  the account (name, email, phone, password twice), the family's business
+  the account (an optional photo, name, email, phone, password twice —
+  each with an eye to show it), the family's business
   (name required; phone, email, commercial licence, civil ID, bank account,
   IBAN and address optional) and its store (name required, description
-  optional), in `AuthForm` and `VendorDetailsFields`. Blanks are left out
+  optional), in `AuthForm` and `VendorDetailsFields`. There is no terms
+  checkbox. Blanks are left out
   of the body, numbers go as digits, the IBAN in capitals without spaces,
-  and `device_name` is the app and platform. It issues no token, then the
+  and `device_name` is the app and platform. A chosen photo goes as the
+  `avatar` file (`AvatarPicker`, from the gallery), which makes the body
+  multipart; one past 5120 KB is refused before sending
+  (`checkAvatarSize`). It issues no token, then the
   app asks for the code. If the
   code fails after the account exists, the family is told to log in with the
   same number (`signup_code_failed`). `verify-otp`'s answer is read leniently
@@ -578,7 +583,12 @@ are passed again — an error belongs to one attempt.
 
 **Errors are shown in a toast**, via `showAppToast(context, message,
 isError: true)`; inputs carry local validation only. List every field error
-one per line (`displayError`). **Inside a bottom sheet** the toast would sit
+one per line (`displayError`). **The sign-in / sign-up form is the
+exception:** it validates as it is typed in (`AutovalidateMode
+.onUserInteraction`), and a 422's field messages are drawn under their
+fields — each field's validator falls back to the server's message, which
+is dropped when that field is edited and on the next submit. The page
+toasts only what no field shows (`AuthForm.showsField`). **Inside a bottom sheet** the toast would sit
 behind the sheet (it belongs to the page's Scaffold), so a sheet that calls
 the server shows the refusal with `SheetErrorNote` above its buttons; the
 sheets here only collect (the reject reason) and the page makes the call.

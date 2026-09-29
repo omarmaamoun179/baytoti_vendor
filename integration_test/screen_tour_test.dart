@@ -175,7 +175,6 @@ void main() {
     await fill(13, 'حلويات سارة');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await wait(tester, 400);
-    await tapText(tester, 'أوافق على شروط الاستخدام وسياسة الخصوصية.');
     await tapText(tester, 'إنشاء الحساب');
     await enterCode(tester);
     await tapText(tester, 'تحقق ومتابعة');

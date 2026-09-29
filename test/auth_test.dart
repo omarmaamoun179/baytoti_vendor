@@ -1,6 +1,7 @@
 import 'package:baytoti_vendor/core/app/session_notifier.dart';
 import 'package:baytoti_vendor/core/mock/mock_locale.dart';
 import 'package:baytoti_vendor/core/mock/mock_session_token.dart';
+import 'package:baytoti_vendor/core/network/multipart_body.dart';
 import 'package:baytoti_vendor/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:baytoti_vendor/features/auth/data/datasources/auth_mock_data_source.dart';
 import 'package:baytoti_vendor/features/auth/data/models/auth_models.dart';
@@ -204,6 +205,34 @@ void main() {
         'iban': 'KW81CBKU0000',
         'store_name': 'حلويات سارة',
       });
+    });
+
+    test('a chosen photo goes as the avatar file, which makes it multipart',
+        () {
+      const signup = SignupDetails(
+        name: 'سارة العلي',
+        email: 'sara@example.com',
+        password: 'kitchen2026',
+        passwordConfirmation: 'kitchen2026',
+        vendor: VendorDetails(businessName: 'مطبخ سارة', storeName: 'حلويات'),
+      );
+      const withPhoto = SignupDetails(
+        name: 'سارة العلي',
+        email: 'sara@example.com',
+        password: 'kitchen2026',
+        passwordConfirmation: 'kitchen2026',
+        vendor: VendorDetails(businessName: 'مطبخ سارة', storeName: 'حلويات'),
+        avatarPath: '/tmp/sara.jpg',
+      );
+
+      final plain = vendorRegisterBody('+96566001122', signup);
+      expect(plain, isNot(contains('avatar')));
+      expect(containsFileUpload(plain), isFalse);
+
+      final body = vendorRegisterBody('+96566001122', withPhoto);
+      expect(body['avatar'], isA<FileUpload>());
+      expect((body['avatar'] as FileUpload).path, '/tmp/sara.jpg');
+      expect(containsFileUpload(body), isTrue);
     });
   });
 }

@@ -42,6 +42,7 @@ class AuthMockDataSource implements AuthDataSource {
         'AuthMockDataSource.register',
         () async {
           await Future<void>.delayed(mockLatency);
+          await checkAvatarSize(signup);
 
           final digits = _digits(phone);
           if (_registered.containsKey(digits)) {

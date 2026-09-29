@@ -5,6 +5,7 @@ import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/utils/app_strings.dart';
+import '../../../../core/utils/photo_picker.dart';
 import '../../../../core/utils/validators/validator_messages.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/caps_label.dart';
@@ -13,19 +14,26 @@ import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../domain/entities/auth_params.dart';
 import 'auth_mode_tabs.dart';
-import 'terms_check.dart';
+import 'avatar_picker.dart';
 import 'vendor_details_fields.dart';
 
 /// Sign in and sign up in one form under the segmented control. Sign-up is
-/// the whole `POST /auth/vendor/register`: the account (name, email, phone,
-/// password), the family's business ([VendorDetailsFields]) and its store,
-/// then the terms. Both tabs end in a code sent to the phone.
+/// the whole `POST /auth/vendor/register`: the account (an optional photo,
+/// name, email, phone, password), the family's business
+/// ([VendorDetailsFields]) and its store. Both tabs end in a code sent to
+/// the phone.
 ///
-/// Holds its own fields and validates them locally; what it hands up is a
-/// finished [RequestOtpParams] through [onSubmit].
+/// Holds its own fields and validates each as it is typed in, the message
+/// under the field; what it hands up is a finished [RequestOtpParams]
+/// through [onSubmit]. The server's refusals ([fieldErrors], by the API's
+/// field names) show under their fields too, until the field is edited.
 class AuthForm extends StatefulWidget {
   final bool loading;
   final ValueChanged<RequestOtpParams> onSubmit;
+
+  /// The last refusal's messages by API field; those in [showsField] are
+  /// drawn under their fields.
+  final Map<String, String> fieldErrors;
 
   /// Told when the vendor switches tab, so a stale error does not follow.
   final VoidCallback? onModeChanged;
@@ -34,8 +42,25 @@ class AuthForm extends StatefulWidget {
     super.key,
     required this.loading,
     required this.onSubmit,
+    this.fieldErrors = const {},
     this.onModeChanged,
   });
+
+  /// The account's API fields, drawn above the business and store ones.
+  static const Set<String> accountFields = {
+    'avatar',
+    'name',
+    'email',
+    'phone',
+    'password',
+    'password_confirmation',
+  };
+
+  /// Whether a server message for [field] is drawn under a field here —
+  /// what is not, the page says in a toast.
+  static bool showsField(String field) =>
+      accountFields.contains(field) ||
+      VendorDetailsFields.fields.contains(field);
 
   @override
   State<AuthForm> createState() => _AuthFormState();
@@ -68,8 +93,60 @@ class _AuthFormState extends State<AuthForm> {
   /// switch.
   VendorDetails _vendor = const VendorDetails();
 
+  /// The profile photo on the device, or null for none.
+  String? _avatar;
+
+  /// The server's refusals still standing, by API field — each is dropped
+  /// when its field is edited, and all of them on the next submit.
+  Map<String, String> _serverErrors = {};
+
   AuthMode _mode = AuthMode.login;
-  bool _acceptedTerms = false;
+
+  @override
+  void didUpdateWidget(AuthForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final errors = widget.fieldErrors;
+    if (identical(errors, oldWidget.fieldErrors)) return;
+
+    final shown = {
+      for (final MapEntry(:key, :value) in errors.entries)
+        if (AuthForm.showsField(key) && value.trim().isNotEmpty) key: value,
+    };
+    if (shown.isEmpty) return;
+    _serverErrors = shown;
+    // After this build: validating marks every field, which must not
+    // happen while they are being built.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !(_formKey.currentState?.validate() ?? true)) {
+        _revealFirstError();
+      }
+    });
+  }
+
+  /// Scrolls the topmost field with a message into view — on a sign-up the
+  /// button sits far below the email a refusal is usually about.
+  void _revealFirstError() {
+    Element? first;
+    void visit(Element element) {
+      if (first != null) return;
+      if (element case StatefulElement(:final FormFieldState<Object?> state)
+          when state.hasError) {
+        first = element;
+        return;
+      }
+      element.visitChildren(visit);
+    }
+
+    _formKey.currentContext?.visitChildElements(visit);
+    final field = first;
+    if (field == null) return;
+    Scrollable.ensureVisible(
+      field,
+      alignment: .2,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   void dispose() {
@@ -95,16 +172,43 @@ class _AuthFormState extends State<AuthForm> {
     super.dispose();
   }
 
+  String? _serverError(String field) => _serverErrors[field];
+
+  /// Drops [field]'s server message. Called from the field's own change,
+  /// before it validates again.
+  void _edited(String field) => _serverErrors.remove(field);
+
+  Future<void> _pickAvatar() async {
+    final picked = await pickGalleryPhotos(context, multiple: false);
+    if (!mounted || picked.isEmpty) return;
+    _edited('avatar');
+    setState(() => _avatar = picked.first);
+  }
+
+  void _removeAvatar() {
+    _edited('avatar');
+    setState(() => _avatar = null);
+  }
+
   void _setMode(AuthMode mode) {
     if (mode == _mode) return;
-    setState(() => _mode = mode);
+    setState(() {
+      _mode = mode;
+      _serverErrors = {};
+    });
     _formKey.currentState?.reset();
     widget.onModeChanged?.call();
   }
 
   void _submit() {
     FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    // A new attempt: the server judges it afresh, so only the local checks
+    // may hold it back.
+    setState(() => _serverErrors = {});
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      _revealFirstError();
+      return;
+    }
 
     widget.onSubmit(RequestOtpParams(
       // Validated above, so the field has reported a number.
@@ -117,6 +221,7 @@ class _AuthFormState extends State<AuthForm> {
               password: _password.text,
               passwordConfirmation: _confirmation.text,
               vendor: _vendor,
+              avatarPath: _avatar,
             )
           : null,
     ));
@@ -129,6 +234,7 @@ class _AuthFormState extends State<AuthForm> {
 
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: AutofillGroup(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,7 +257,15 @@ class _AuthFormState extends State<AuthForm> {
                   'phone_length'.tr(args: ['$digits']),
               textInputAction:
                   signup ? TextInputAction.next : TextInputAction.done,
-              onInputChanged: (number) => _number = number,
+              // Runs after the field's own checks.
+              validator: (_) => _serverError('phone'),
+              onInputChanged: (number) {
+                // Also called when the field regroups the same number.
+                if (number.phoneNumber != _number?.phoneNumber) {
+                  _edited('phone');
+                }
+                _number = number;
+              },
               onSubmitted: (_) {
                 // Sign-up goes on to the password; sign-in is done here.
                 if (signup) {
@@ -168,11 +282,8 @@ class _AuthFormState extends State<AuthForm> {
                 initial: _vendor,
                 focusNode: _vendorFocus,
                 onChanged: (details) => _vendor = details,
-              ),
-              SizedBox(height: 16.h),
-              TermsCheck(
-                value: _acceptedTerms,
-                onChanged: (value) => setState(() => _acceptedTerms = value),
+                serverError: _serverError,
+                onEdited: _edited,
               ),
             ],
             SizedBox(height: 16.h),
@@ -196,9 +307,16 @@ class _AuthFormState extends State<AuthForm> {
     );
   }
 
-  /// The account holder's name and email, above the number.
+  /// The account's photo, and its holder's name and email, above the number.
   List<Widget> _buildAccountFields(AppPalette p) => [
         SectionHeader(title: 'auth_section_account'.tr()),
+        AvatarPicker(
+          path: _avatar,
+          error: _serverError('avatar'),
+          onPick: widget.loading ? null : _pickAvatar,
+          onRemove: widget.loading ? null : _removeAvatar,
+        ),
+        SizedBox(height: 16.h),
         AppTextField(
           label: 'auth_name'.tr(),
           hintText: 'auth_name_hint'.tr(),
@@ -208,13 +326,16 @@ class _AuthFormState extends State<AuthForm> {
           maxLength: SignupDetails.nameMaxLength,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.name],
+          onChanged: (_) => _edited('name'),
           onSubmitted: (_) => _emailFocus.requestFocus(),
-          validator: (value) => validateTextLength(
-            value,
-            minLength: SignupDetails.nameMinLength,
-            maxLength: SignupDetails.nameMaxLength,
-            isRequired: true,
-          ),
+          validator: (value) =>
+              validateTextLength(
+                value,
+                minLength: SignupDetails.nameMinLength,
+                maxLength: SignupDetails.nameMaxLength,
+                isRequired: true,
+              ) ??
+              _serverError('name'),
         ),
         SizedBox(height: 16.h),
         AppTextField(
@@ -227,8 +348,10 @@ class _AuthFormState extends State<AuthForm> {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
+          onChanged: (_) => _edited('email'),
           onSubmitted: (_) => _phoneFocus.requestFocus(),
-          validator: (value) => validateEmail(value?.trim()),
+          validator: (value) =>
+              validateEmail(value?.trim()) ?? _serverError('email'),
         ),
         SizedBox(height: 16.h),
       ];
@@ -245,8 +368,10 @@ class _AuthFormState extends State<AuthForm> {
           obscureText: true,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
+          onChanged: (_) => _edited('password'),
           onSubmitted: (_) => _confirmationFocus.requestFocus(),
-          validator: validatePassword,
+          validator: (value) =>
+              validatePassword(value) ?? _serverError('password'),
         ),
         SizedBox(height: 16.h),
         AppTextField(
@@ -257,9 +382,11 @@ class _AuthFormState extends State<AuthForm> {
           obscureText: true,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
+          onChanged: (_) => _edited('password_confirmation'),
           onSubmitted: (_) => _vendorFocus.requestFocus(),
           validator: (value) =>
-              validatePasswordConfirmation(value, _password.text),
+              validatePasswordConfirmation(value, _password.text) ??
+              _serverError('password_confirmation'),
         ),
       ];
 }

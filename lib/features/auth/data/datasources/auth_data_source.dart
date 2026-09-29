@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/domain/failure.dart';
+import '../../../../core/exceptions/app_exceptions.dart';
 import '../../domain/entities/auth_params.dart';
 import '../models/auth_models.dart';
 import '../models/vendor_user_model.dart';
@@ -28,4 +31,15 @@ abstract class AuthDataSource {
 
   /// `POST /auth/logout`.
   Future<Either<Failure, Unit>> logout();
+}
+
+/// Refuses a profile photo past [SignupDetails.avatarMaxBytes] before
+/// anything is sent, as the server's `max:5120` would. Both sources call it
+/// inside their guard, so the fixtures refuse what the server does.
+Future<void> checkAvatarSize(SignupDetails signup) async {
+  final path = signup.avatarPath;
+  if (path == null) return;
+  if (await File(path).length() > SignupDetails.avatarMaxBytes) {
+    throw const RequestException('image_too_large', statusCode: 413);
+  }
 }
