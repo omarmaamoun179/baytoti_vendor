@@ -18,7 +18,6 @@ import '../../domain/entities/store_profile.dart';
 import '../cubit/store_cubit.dart';
 import '../cubit/store_state.dart';
 import '../widgets/account_card.dart';
-import '../widgets/store_cover.dart';
 import '../widgets/store_details_card.dart';
 import '../widgets/verification_card.dart';
 
@@ -60,6 +59,8 @@ class _StoreViewState extends State<_StoreView> {
     if (_showSaved) setState(() => _showSaved = false);
   }
 
+  // Kept for when the cover comes back; its widget is commented out below.
+  // ignore: unused_element
   Future<void> _changeCover() async {
     final paths = await pickGalleryPhotos(context, multiple: false);
     if (!mounted || paths.isEmpty) return;
@@ -163,17 +164,13 @@ class _StoreViewState extends State<_StoreView> {
       padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 24.h),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
-        StoreCover(
-          source: state.coverSource,
-          uploading: state.cover?.isUploading ?? false,
-          onChange: store.coverEditable ? _changeCover : null,
-        ),
+        // StoreCover(
+        //   source: state.coverSource,
+        //   uploading: state.cover?.isUploading ?? false,
+        //   onChange: store.coverEditable ? _changeCover : null,
+        // ),
         SizedBox(height: 14.h),
-        StoreDetailsCard(
-          key: _details,
-          store: store,
-          onChanged: _edited,
-        ),
+        StoreDetailsCard(key: _details, store: store, onChanged: _edited),
         SizedBox(height: 14.h),
         if (store.documents.isNotEmpty) ...[
           VerificationCard(documents: store.documents),
