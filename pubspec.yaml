@@ -81,6 +81,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # connectivity_plus >= 7.1.1 calls NWPath.isUltraConstrained, which only exists
 # in the iOS/macOS 26 SDK (Xcode 26). Pinned to the last version without it —
@@ -120,3 +121,21 @@ flutter:
           weight: 600
         - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
           weight: 700
+
+# Run `dart run flutter_launcher_icons` after changing this block.
+# The source is the vendor icon in Claude Design's "Baytouti App Icons",
+# kept as SVG beside the PNGs (assets/icons/) and rendered at 1024.
+# Android's adaptive icon is two layers: the amber square is the background
+# colour, and the foreground is the disc and mark on transparent, at the
+# same scale, so the mark sits inside the 66dp safe zone (inset 0). The 1024
+# is rendered without an alpha channel, which App Store Connect rejects;
+# `remove_alpha_ios` keeps it that way.
+flutter_launcher_icons:
+  image_path: "assets/icons/vendor-icon-1024.png"
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#D9822A"
+  adaptive_icon_foreground: "assets/icons/vendor-icon-foreground-1024.png"
+  adaptive_icon_foreground_inset: 0
+  min_sdk_android: 21

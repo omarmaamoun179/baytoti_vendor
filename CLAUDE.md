@@ -249,8 +249,15 @@ opens.
   public `GET products` and `GET stores` answer 500 without a token
   (`LocationContextService` given a null user); validation messages ignore
   the language headers.
-- **Not done**: the splash is Flutter only (no native splash or launcher
-  icons generated); identifiers are still the template's
+- **App icon**: the vendor icon from Claude Design's "Baytouti App Icons"
+  (the house, leaf and bird on amber, an awning over the door), kept as SVG
+  in `assets/icons/` beside the 1024 PNGs `flutter_launcher_icons` reads
+  (config in `pubspec.yaml`). To change it, render the SVGs again (headless
+  Chrome) and run `dart run flutter_launcher_icons`. Afterwards revert
+  `ios/Runner.xcodeproj/project.pbxproj`: 0.14.4 writes `AppIcon` into
+  `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS`, a yes/no
+  setting.
+- **Not done**: the splash is Flutter only (no native splash); identifiers are still the template's
   `com.example.baytoti_vendor`; Android release is signed with the debug key;
   nothing refreshes a token (Sanctum tokens do not refresh); the location is
   set by hand only (`mode: auto` would need a device-location package).
